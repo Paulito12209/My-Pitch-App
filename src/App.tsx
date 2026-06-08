@@ -255,6 +255,10 @@ function PlayScreen({
   return (
     <section className="screen play">
       <header className="topbar">
+        <span className="topbar-step">
+          Phase {phase + 1}/{PHASES.length}
+        </span>
+        <Progress phase={phase} revealed={revealed} />
         <button className="iconbtn" aria-label="Beenden" onClick={onQuit}>
           <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
             <path
@@ -265,22 +269,20 @@ function PlayScreen({
             />
           </svg>
         </button>
-        <Progress phase={phase} revealed={revealed} />
       </header>
 
       <div className="phase-label">
-        <span className="phase-step">
-          Phase {phase + 1}/{PHASES.length}
-        </span>
         <span className="phase-name">{PHASES[phase]}</span>
       </div>
 
       <div className="convo">
-        <div className="speaker">
-          <CustomerAvatar />
-          <span className="speaker-role">{role}</span>
+        <div className="bubble">
+          <div className="bubble-head">
+            <CustomerAvatar />
+            <span className="bubble-role">{role}</span>
+          </div>
+          <p className="bubble-text">{line.customer}</p>
         </div>
-        <div className="bubble">{line.customer}</div>
       </div>
 
       <button

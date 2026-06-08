@@ -294,15 +294,24 @@ button {
 .topbar {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   margin-bottom: 26px;
+}
+.topbar-step {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  white-space: nowrap;
 }
 .iconbtn {
   display: grid;
   place-items: center;
   width: 40px;
   height: 40px;
-  margin-left: -8px;
+  margin-right: -8px;
   color: var(--text-3);
   border-radius: 12px;
   transition: color 0.2s, background 0.2s;
@@ -345,24 +354,17 @@ button {
   gap: 4px;
   margin-bottom: 22px;
 }
-.phase-step {
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--text-3);
-}
 .phase-name {
   font-size: 26px;
   font-weight: 700;
   letter-spacing: -0.02em;
 }
 
-/* ── Play: Kunde / Sprechblase ───────────────────────────────────────────── */
+/* ── Play: Kunde / Sprechblase (Icon + Kategorie-Text in der Karte) ───────── */
 .convo {
   margin-bottom: 18px;
 }
-.speaker {
+.bubble-head {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -371,26 +373,30 @@ button {
 .avatar {
   display: grid;
   place-items: center;
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
   background: var(--surface-2);
   border: 1px solid var(--border);
   color: var(--text-2);
 }
-.speaker-role {
-  font-size: 14px;
+.bubble-role {
+  font-size: 12px;
   font-weight: 600;
-  color: var(--text-2);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.bubble-text {
+  font-size: 19px;
+  line-height: 1.45;
+  color: var(--text);
 }
 .bubble {
   background: var(--surface-1);
   border: 1px solid var(--border);
-  border-radius: 22px;
-  border-top-left-radius: 8px;
+  border-radius: var(--radius-lg);
   padding: 18px 20px;
-  font-size: 19px;
-  line-height: 1.45;
   color: var(--text);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -411,11 +417,22 @@ button {
   transition: background 0.3s var(--ease), border-color 0.3s var(--ease);
   overflow-y: auto;
 }
+/* gesperrt = dezenteres, durchsichtiges Liquid-Glass mit innerem Rand */
 .answer-locked {
   align-items: center;
   justify-content: center;
-  background: var(--surface-1);
-  border: 1px dashed var(--border-strong);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.07),
+    rgba(255, 255, 255, 0.02)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(30px) saturate(160%);
+  -webkit-backdrop-filter: blur(30px) saturate(160%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    inset 0 0 0 0.5px rgba(255, 255, 255, 0.06),
+    inset 0 -10px 30px rgba(255, 255, 255, 0.03),
+    0 14px 40px rgba(0, 0, 0, 0.4);
   color: var(--text-3);
 }
 .answer-hint {
