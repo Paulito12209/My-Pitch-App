@@ -3,9 +3,10 @@ import {
   generateConversation,
   PHASES,
   STATUS_LABEL,
-  type GeneratedConversation,
-  type Line,
+  type Conversation,
+  type PhaseScript,
   type Status,
+  type Turn,
 } from './data'
 import { FlatpayMark, FlatpayMascot } from './FlatpayMark'
 
@@ -25,14 +26,16 @@ export function App() {
   const [screen, setScreen] = useState<Screen>(() =>
     localStorage.getItem(ONBOARDING_KEY) ? 'start' : 'onboarding',
   )
-  const [convo, setConvo] = useState<GeneratedConversation | null>(null)
-  const [phase, setPhase] = useState(0)
+  const [convo, setConvo] = useState<Conversation | null>(null)
+  const [phaseIdx, setPhaseIdx] = useState(0)
+  const [stepIdx, setStepIdx] = useState(0)
   const [revealed, setRevealed] = useState(false)
   const [praise, setPraise] = useState(PRAISE[0])
 
   const startConversation = useCallback(() => {
     setConvo(generateConversation())
-    setPhase(0)
+    setPhaseIdx(0)
+    setStepIdx(0)
     setRevealed(false)
     setScreen('play')
   }, [])
@@ -41,6 +44,21 @@ export function App() {
     localStorage.setItem(ONBOARDING_KEY, '1')
     setScreen('start')
   }, [])
+
+  const handleNext = useCallback(() => {
+    if (!convo) return
+    const phase = convo.phases[phaseIdx]
+    if (stepIdx < phase.steps.length - 1) {
+      // nächster Teilschritt – fließend weiter im selben Gespräch
+      setStepIdx((s) => s + 1)
+      setRevealed(false)
+    } else if (phaseIdx >= convo.phases.length - 1) {
+      setScreen('done')
+    } else {
+      setPraise(PRAISE[phaseIdx % PRAISE.length])
+      setScreen('celebrate')
+    }
+  }, [convo, phaseIdx, stepIdx])
 
   return (
     <div className="app">
@@ -56,26 +74,22 @@ export function App() {
         {screen === 'play' && convo && (
           <PlayScreen
             convo={convo}
-            phase={phase}
+            phaseIdx={phaseIdx}
+            stepIdx={stepIdx}
             revealed={revealed}
             onReveal={() => setRevealed(true)}
-            onNext={() => {
-              if (phase >= PHASES.length - 1) {
-                setScreen('done')
-              } else {
-                setPraise(PRAISE[phase % PRAISE.length])
-                setScreen('celebrate')
-              }
-            }}
+            onNext={handleNext}
             onQuit={() => setScreen('start')}
           />
         )}
-        {screen === 'celebrate' && (
+        {screen === 'celebrate' && convo && (
           <Celebrate
             text={praise}
-            phaseDone={phase}
+            phaseName={convo.phases[phaseIdx].name}
+            phaseNumber={phaseIdx + 1}
             onContinue={() => {
-              setPhase((p) => p + 1)
+              setPhaseIdx((p) => p + 1)
+              setStepIdx(0)
               setRevealed(false)
               setScreen('play')
             }}
@@ -113,12 +127,12 @@ function Onboarding({ onDone }: { onDone: () => void }) {
     {
       art: <FlatpayMascot size={120} />,
       title: "So funktioniert's",
-      body: 'Der Trainer generiert einen zufälligen Verlauf: mal triffst du den Inhaber, mal eine:n Mitarbeiter:in. Auch der aktuelle Anbieter ist jedes Mal anders.',
+      body: 'Der Trainer generiert einen zufälligen, logisch aufgebauten Verlauf: mal triffst du den Inhaber, mal eine:n Mitarbeiter:in. Auch der aktuelle Anbieter ist jedes Mal anders.',
     },
     {
       art: <FlatpayMascot size={120} />,
       title: 'Dein Job',
-      body: 'Lies, was dein Gegenüber sagt. Überleg deine Antwort — dann deck die ideale Flatpay-Antwort auf und sag sie laut. In 5 Phasen zum Termin.',
+      body: 'Lies, was dein Gegenüber sagt, und deck die ideale Antwort auf. Manche Phasen haben mehrere Schritte — beim Informieren z. B. die drei Pflichtfragen. In 5 Phasen zum Termin.',
     },
   ]
   const last = i === slides.length - 1
@@ -188,19 +202,30 @@ function StartScreen({
   )
 }
 
-// ── Fortschrittsleiste (5 Segmente, Duolingo-Struktur, minimal) ─────────────
-function Progress({ phase, revealed }: { phase: number; revealed: boolean }) {
+// ── Fortschrittsleiste (5 Phasen, fraktionale Füllung über Teilschritte) ────
+function Progress({
+  phases,
+  phaseIdx,
+  stepIdx,
+  revealed,
+}: {
+  phases: PhaseScript[]
+  phaseIdx: number
+  stepIdx: number
+  revealed: boolean
+}) {
   return (
     <div className="progress">
-      {PHASES.map((_, i) => {
-        const full = i < phase || (i === phase && revealed)
-        const active = i === phase
+      {phases.map((p, i) => {
+        let fraction = 0
+        if (i < phaseIdx) fraction = 1
+        else if (i === phaseIdx) {
+          const done = stepIdx + (revealed ? 1 : 0)
+          fraction = Math.min(done / p.steps.length, 1)
+        }
         return (
-          <span
-            key={i}
-            className={`seg ${full ? 'seg-full' : ''} ${active ? 'seg-active' : ''}`}
-          >
-            <span className="seg-fill" />
+          <span key={i} className={`seg ${i === phaseIdx ? 'seg-active' : ''}`}>
+            <span className="seg-fill" style={{ width: `${fraction * 100}%` }} />
           </span>
         )
       })}
@@ -208,7 +233,7 @@ function Progress({ phase, revealed }: { phase: number; revealed: boolean }) {
   )
 }
 
-// ── Kunden-Avatar (gerundetes Quadrat, kein Kreis, dünne Linien-Ikone) ──────
+// ── Kunden-Avatar (nacktes Personen-Icon, kein Kreis/Hintergrund) ───────────
 function CustomerAvatar() {
   return (
     <span className="avatar" aria-hidden>
@@ -236,29 +261,47 @@ function StatusPill({ status }: { status: Status }) {
 // ── Spiel-Bildschirm: Kunde oben, Antwort unten (Aufdecken) ─────────────────
 function PlayScreen({
   convo,
-  phase,
+  phaseIdx,
+  stepIdx,
   revealed,
   onReveal,
   onNext,
   onQuit,
 }: {
-  convo: GeneratedConversation
-  phase: number
+  convo: Conversation
+  phaseIdx: number
+  stepIdx: number
   revealed: boolean
   onReveal: () => void
   onNext: () => void
   onQuit: () => void
 }) {
-  const line: Line = convo.steps[phase]
-  const role = convo.customerType === 'inhaber' ? 'Inhaber' : 'Mitarbeiter:in'
+  const phase = convo.phases[phaseIdx]
+  const turn: Turn = phase.steps[stepIdx]
+  const totalSteps = phase.steps.length
+
+  const isLastStep = stepIdx === totalSteps - 1
+  const isLastPhase = phaseIdx === convo.phases.length - 1
+  const nextLabel = revealed
+    ? isLastStep && isLastPhase
+      ? 'Gespräch abschließen'
+      : isLastStep
+        ? 'Phase abschließen'
+        : 'Weiter'
+    : 'Antwort aufdecken'
 
   return (
     <section className="screen play">
       <header className="topbar">
         <span className="topbar-step">
-          Phase {phase + 1}/{PHASES.length}
+          Phase {phaseIdx + 1}/{PHASES.length}
         </span>
-        <Progress phase={phase} revealed={revealed} />
+        <Progress
+          phases={convo.phases}
+          phaseIdx={phaseIdx}
+          stepIdx={stepIdx}
+          revealed={revealed}
+        />
         <button className="iconbtn" aria-label="Beenden" onClick={onQuit}>
           <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
             <path
@@ -272,15 +315,20 @@ function PlayScreen({
       </header>
 
       <div className="phase-label">
-        <span className="phase-name">{PHASES[phase]}</span>
+        <span className="phase-name">{phase.name}</span>
+        {totalSteps > 1 && (
+          <span className="phase-sub">
+            Schritt {stepIdx + 1} von {totalSteps}
+          </span>
+        )}
       </div>
 
       <div className="convo">
         <div className="bubble">
           <CustomerAvatar />
           <div className="bubble-body">
-            <span className="bubble-role">{role}</span>
-            <p className="bubble-text">{line.customer}</p>
+            <span className="bubble-role">{turn.speaker}</span>
+            <p className="bubble-text">{turn.customer}</p>
           </div>
         </div>
       </div>
@@ -293,10 +341,21 @@ function PlayScreen({
         {revealed ? (
           <>
             <div className="answer-head">
-              <span className="answer-tag">{line.tag}</span>
-              <StatusPill status={line.status} />
+              <span className="answer-tag">Deine Antwort</span>
+              <StatusPill status={turn.status} />
             </div>
-            <p className="answer-text">{line.response}</p>
+            <p className="answer-text">{turn.response}</p>
+            <div className="answer-note">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none">
+                <path
+                  d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.6.6 1 1.3 1 2.1h6c0-.8.4-1.5 1-2.1A6 6 0 0 0 12 3Z"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              <span>{turn.hint}</span>
+            </div>
           </>
         ) : (
           <span className="answer-hint">
@@ -315,11 +374,7 @@ function PlayScreen({
 
       <div className="dock">
         <button className="btn btn-primary" onClick={revealed ? onNext : onReveal}>
-          {revealed
-            ? phase >= PHASES.length - 1
-              ? 'Gespräch abschließen'
-              : 'Weiter'
-            : 'Antwort aufdecken'}
+          {nextLabel}
         </button>
       </div>
     </section>
@@ -329,14 +384,16 @@ function PlayScreen({
 // ── Gratulation zwischen den Phasen (Flatpay-Mark statt Eule) ───────────────
 function Celebrate({
   text,
-  phaseDone,
+  phaseName,
+  phaseNumber,
   onContinue,
 }: {
   text: string
-  phaseDone: number
+  phaseName: string
+  phaseNumber: number
   onContinue: () => void
 }) {
-  // Auto-Weiter nach kurzer Feier-Pause, aber Button bleibt steuerbar.
+  // Auto-Weiter nach kurzer Feier-Pause, aber Tippen springt sofort weiter.
   useEffect(() => {
     const t = setTimeout(onContinue, 2200)
     return () => clearTimeout(t)
@@ -349,18 +406,10 @@ function Celebrate({
       </div>
       <h2 className="celebrate-title">{text}</h2>
       <p className="celebrate-sub">
-        {PHASES[phaseDone]} abgeschlossen · {phaseDone + 1}/{PHASES.length}
+        {phaseName} abgeschlossen · {phaseNumber}/{PHASES.length}
       </p>
     </section>
   )
-}
-
-function providerShort(tag: string) {
-  // "Anbieter: SumUp" -> "SumUp"; sonst Tag unverändert.
-  const m = tag.match(/Anbieter:\s*(.+)/)
-  if (m) return m[1]
-  if (/Nexi/i.test(tag)) return 'Nexi'
-  return tag
 }
 
 // ── Abschluss-Übersicht (Duolingo „Lektion fertig", minimal) ────────────────
@@ -368,16 +417,19 @@ function DoneScreen({
   convo,
   onRestart,
 }: {
-  convo: GeneratedConversation
+  convo: Conversation
   onRestart: () => void
 }) {
-  const role = convo.customerType === 'inhaber' ? 'Inhaber' : 'Mitarbeiter:in'
-  const provider = useMemo(() => providerShort(convo.steps[2].tag), [convo])
+  const role = convo.customerType === 'inhaber' ? 'Inhaber' : 'über Mitarbeiter:in'
+  const steps = useMemo(
+    () => convo.phases.reduce((sum, p) => sum + p.steps.length, 0),
+    [convo],
+  )
 
   const stats = [
     { label: 'Phasen', value: `${PHASES.length}/${PHASES.length}` },
-    { label: 'Gegenüber', value: role },
-    { label: 'Anbieter', value: provider },
+    { label: 'Schritte', value: `${steps}` },
+    { label: 'Anbieter', value: convo.provider },
   ]
 
   return (
@@ -385,7 +437,9 @@ function DoneScreen({
       <div className="done-center">
         <FlatpayMascot size={140} />
         <h1 className="done-title">Gespräch gemeistert</h1>
-        <p className="done-sub">Du hast alle 5 Phasen sauber durchgespielt.</p>
+        <p className="done-sub">
+          Du hast den kompletten Trichter bis zum Termin durchgespielt ({role}).
+        </p>
 
         <div className="stats">
           {stats.map((s) => (

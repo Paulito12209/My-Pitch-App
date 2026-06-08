@@ -11,16 +11,31 @@ dich das **Flatpay-Logo** als animierte Komponente.
 
 ## Konzept
 
-- **Zufälliger Verlauf:** Mal triffst du den **Inhaber**, mal eine:n
-  **Mitarbeiter:in** – auch der aktuelle **Anbieter** (Payone, Sparkasse, SumUp,
-  TeleCash, Vert, Nexi …) wird pro Gespräch neu gewürfelt.
-- **5 Phasen:** Begrüßung → Interesse → Anbieter → Einwand → Abschluss.
-- **Aufdecken-Modus:** Dein Gegenüber sagt etwas, du überlegst deine Antwort und
-  deckst dann die ideale Flatpay-Antwort in der unteren Hälfte auf.
-- **Gratulation:** Nach jeder Phase pulst die Flatpay-Mark als Belohnung.
+Jedes Gespräch ist ein **logisch aufgebauter Trichter** über 5 Phasen – mit
+mehreren Teilschritten pro Phase, damit du den Ablauf wirklich trainierst und
+nicht nur einzelne Sätze:
 
-Die kompletten Antworten/Einwände stammen 1:1 aus dem Pitch-Skript und liegen in
-[`src/data.ts`](src/data.ts) – dort lässt sich der Inhalt leicht erweitern.
+1. **Begrüßung** – Entscheider erreichen (verzweigt: Inhaber direkt vs.
+   Mitarbeiter:in als Gatekeeper → Durchstellen).
+2. **Kontaktieren** – Erstwiderstand auflösen **und** den aktuellen Anbieter
+   erfragen (2 Schritte).
+3. **Informieren** – die **3 Pflichtfragen**: Inhaber bestätigen · tippt ihr die
+   Beträge manuell ins Gerät? · Umsatz pro Monat? (3 Schritte).
+4. **Argumentieren** – **Zusammenfassen (Ja-Kette)** + Pain des Anbieters +
+   sanfter Interesse-Check, ohne Widerstand zu erzeugen (2 Schritte).
+5. **Terminieren** – erst Zustimmung holen, **dann** den konkreten Tag
+   vorschlagen – kein vorschnelles „Dienstag oder Donnerstag" (2 Schritte).
+
+- **Zufällig & frisch:** Rolle (Inhaber/Mitarbeiter:in), **Anbieter** (Payone,
+  Sparkasse, SumUp, TeleCash, Vert, Nexi), Erstwiderstand, Umsatz und Einwände
+  werden pro Gespräch neu gewürfelt.
+- **Aufdecken-Modus:** Dein Gegenüber sagt etwas, du überlegst deine Antwort und
+  deckst dann die ideale Flatpay-Antwort auf – inkl. kurzem **Technik-Hinweis**.
+- **Fortschritt:** Die obere Leiste füllt jede Phase anteilig über ihre
+  Teilschritte; nach jeder Phase feiert dich die Flatpay-Mark.
+
+Der komplette Gesprächsverlauf liegt in [`src/data.ts`](src/data.ts) – dort
+lassen sich Antworten, Varianten und Anbieter leicht erweitern.
 
 ## Lokal starten
 

@@ -359,6 +359,12 @@ button {
   font-weight: 700;
   letter-spacing: -0.02em;
 }
+.phase-sub {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--text-3);
+}
 
 /* ── Play: Kunde / Sprechblase (Icon links neben Rolle + Text) ───────────── */
 .convo {
@@ -525,6 +531,22 @@ button {
   font-size: 18px;
   line-height: 1.5;
   color: var(--text);
+}
+/* Technik-/Coaching-Hinweis – dezent, am unteren Kartenrand */
+.answer-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 16px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text-3);
+}
+.answer-note svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--text-2);
 }
 
 /* ── Status-Pill (kein Kreis darin – nur Kontrast & Text) ────────────────── */
