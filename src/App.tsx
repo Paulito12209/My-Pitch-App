@@ -212,7 +212,7 @@ function Progress({ phase, revealed }: { phase: number; revealed: boolean }) {
 function CustomerAvatar() {
   return (
     <span className="avatar" aria-hidden>
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
         <path
           d="M12 12.5a3.25 3.25 0 1 0 0-6.5 3.25 3.25 0 0 0 0 6.5Z"
           stroke="currentColor"
@@ -277,11 +277,11 @@ function PlayScreen({
 
       <div className="convo">
         <div className="bubble">
-          <div className="bubble-head">
-            <CustomerAvatar />
+          <CustomerAvatar />
+          <div className="bubble-body">
             <span className="bubble-role">{role}</span>
+            <p className="bubble-text">{line.customer}</p>
           </div>
-          <p className="bubble-text">{line.customer}</p>
         </div>
       </div>
 

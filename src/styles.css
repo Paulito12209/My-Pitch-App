@@ -360,25 +360,21 @@ button {
   letter-spacing: -0.02em;
 }
 
-/* ── Play: Kunde / Sprechblase (Icon + Kategorie-Text in der Karte) ───────── */
+/* ── Play: Kunde / Sprechblase (Icon links neben Rolle + Text) ───────────── */
 .convo {
   margin-bottom: 18px;
 }
-.bubble-head {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 12px;
-}
 .avatar {
-  display: grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
+  flex-shrink: 0;
+  line-height: 0;
+  margin-top: 1px;
   color: var(--text-2);
+}
+.bubble-body {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
 }
 .bubble-role {
   font-size: 12px;
@@ -389,14 +385,17 @@ button {
 }
 .bubble-text {
   font-size: 19px;
-  line-height: 1.45;
+  line-height: 1.4;
   color: var(--text);
 }
 .bubble {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
   background: var(--surface-1);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 18px 20px;
+  padding: 16px 18px;
   color: var(--text);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -415,7 +414,7 @@ button {
   display: flex;
   flex-direction: column;
   transition: background 0.3s var(--ease), border-color 0.3s var(--ease);
-  overflow-y: auto;
+  overflow: hidden;
 }
 /* gesperrt = dezenteres, durchsichtiges Liquid-Glass mit innerem Rand */
 .answer-locked {
