@@ -28,10 +28,10 @@ export const STATUS_LABEL: Record<Status, string> = {
 
 export const PHASES = [
   'Begrüßung',
-  'Interesse',
-  'Anbieter',
-  'Einwand',
-  'Abschluss',
+  'Kontaktieren',
+  'Informieren',
+  'Argumentieren',
+  'Terminieren',
 ] as const
 
 export type PhaseName = (typeof PHASES)[number]
@@ -103,7 +103,7 @@ const greetingMitarbeiter: Line[] = [
   },
 ]
 
-// ── Phase 2 · Interesse / Erstreaktion ──────────────────────────────────────
+// ── Phase 2 · Kontaktieren (Erstreaktion) ───────────────────────────────────
 const interest: Line[] = [
   {
     id: 'i-zufrieden',
@@ -154,7 +154,7 @@ const interest: Line[] = [
   },
 ]
 
-// ── Phase 3 · Anbieter (Pain Points) ────────────────────────────────────────
+// ── Phase 3 · Informieren (Anbieter / Pain Points) ──────────────────────────
 const providers: Line[] = [
   {
     id: 'p-payone',
@@ -214,7 +214,7 @@ const providers: Line[] = [
   },
 ]
 
-// ── Phase 4 · Einwand ───────────────────────────────────────────────────────
+// ── Phase 4 · Argumentieren (Einwände) ──────────────────────────────────────
 const objections: Line[] = [
   {
     id: 'e-partner',
@@ -258,7 +258,7 @@ const objections: Line[] = [
   },
 ]
 
-// ── Phase 5 · Abschluss ─────────────────────────────────────────────────────
+// ── Phase 5 · Terminieren (Abschluss) ───────────────────────────────────────
 const closing: Line[] = [
   {
     id: 'c-okay',

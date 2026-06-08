@@ -95,6 +95,7 @@ function Backdrop() {
     <div className="backdrop" aria-hidden>
       <div className="glow glow-a" />
       <div className="glow glow-b" />
+      <div className="glow glow-c" />
       <div className="grain" />
     </div>
   )
@@ -138,12 +139,14 @@ function Onboarding({ onDone }: { onDone: () => void }) {
             <span key={k} className={`dot ${k === i ? 'dot-on' : ''}`} />
           ))}
         </div>
-        <button
-          className="btn btn-primary"
-          onClick={() => (last ? onDone() : setI((v) => v + 1))}
-        >
-          {last ? "Los geht's" : 'Weiter'}
-        </button>
+        <div className="dock">
+          <button
+            className="btn btn-primary"
+            onClick={() => (last ? onDone() : setI((v) => v + 1))}
+          >
+            {last ? "Los geht's" : 'Weiter'}
+          </button>
+        </div>
       </div>
     </section>
   )
@@ -173,7 +176,7 @@ function StartScreen({
         </p>
       </div>
 
-      <div className="start-bottom">
+      <div className="dock start-bottom">
         <button className="btn btn-primary" onClick={onStart}>
           Gespräch starten
         </button>
@@ -308,7 +311,7 @@ function PlayScreen({
         )}
       </button>
 
-      <div className="play-bottom">
+      <div className="dock">
         <button className="btn btn-primary" onClick={revealed ? onNext : onReveal}>
           {revealed
             ? phase >= PHASES.length - 1
@@ -392,7 +395,7 @@ function DoneScreen({
         </div>
       </div>
 
-      <div className="done-bottom">
+      <div className="dock">
         <button className="btn btn-primary" onClick={onRestart}>
           Neues Gespräch
         </button>
