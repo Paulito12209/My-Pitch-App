@@ -398,12 +398,14 @@ button {
 
 /* ── Play: Antwort-Karte (Aufdecken) ─────────────────────────────────────── */
 .answer {
+  position: relative;
+  isolation: isolate;
   flex: 1;
   min-height: 0;
   width: 100%;
   text-align: left;
   border-radius: var(--radius-lg);
-  padding: 22px;
+  padding: 24px;
   display: flex;
   flex-direction: column;
   transition: background 0.3s var(--ease), border-color 0.3s var(--ease);
@@ -424,12 +426,64 @@ button {
   font-size: 15px;
   font-weight: 500;
 }
+
+/* Aufgedeckt = voller Liquid-Glass-Stil (identisch zum Dock) */
 .answer-open {
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  animation: reveal 0.45s var(--ease) both;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.13),
+    rgba(255, 255, 255, 0.04)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(38px) saturate(190%);
+  -webkit-backdrop-filter: blur(38px) saturate(190%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 0 0 0.5px rgba(255, 255, 255, 0.08),
+    inset 0 -10px 30px rgba(255, 255, 255, 0.04),
+    0 18px 50px rgba(0, 0, 0, 0.5);
+  animation: reveal 0.5s var(--ease) both;
+}
+/* einmaliger Glanz-Sweep beim Aufdecken */
+.answer-open::before {
+  content: '';
+  position: absolute;
+  inset: -30% -10%;
+  background: linear-gradient(
+    115deg,
+    transparent 38%,
+    rgba(255, 255, 255, 0.2) 50%,
+    transparent 62%
+  );
+  transform: translateX(-130%);
+  animation: card-sheen 1.3s var(--ease) 0.15s both;
+  pointer-events: none;
+  z-index: 0;
+}
+/* Lichtsaum am oberen Glasrand */
+.answer-open::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 14%;
+  right: 14%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.6),
+    transparent
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+.answer-open > * {
+  position: relative;
+  z-index: 1;
+}
+@keyframes card-sheen {
+  to {
+    transform: translateX(130%);
+  }
 }
 @keyframes reveal {
   from {
