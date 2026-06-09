@@ -1,33 +1,31 @@
 // ─────────────────────────────────────────────────────────────────────────
-//  Flatpay Pitch Trainer · Gesprächs-Engine
+//  Flatpay Pitch Trainer · Gesprächs-Engine (Simulation)
 //
-//  Statt einer einzelnen Frage pro Phase ist jedes Gespräch ein logischer
-//  Trichter mit mehreren Teilschritten je Phase:
+//  Logischer Trichter über 5 Phasen, mit Teilschritten – abgestimmt auf das
+//  Trainer-Feedback:
+//    • Locker & positiv, NICHT zu früh „von Flatpay" reden – der Name +
+//      Terminvorschlag kommen erst im Abschluss.
+//    • Natürlicher Einstieg: Begrüßung → „Kann man mit Karte zahlen?" →
+//      „Bei welchem Anbieter?" → Pain platzieren → Termin.
+//    • Wenige offene Ja/Nein-Fragen; lieber annehmende Aussagen, die den
+//      Kunden führen, statt ihm Ausstiege anzubieten.
 //
-//    1. Begrüßung    – Entscheider erreichen (verzweigt nach Inhaber/Mitarbeiter)
-//    2. Kontaktieren – Erstwiderstand auflösen + aktuellen Anbieter erfragen
-//    3. Informieren  – 3 PFLICHTFRAGEN: Inhaber? · manuelles Eintippen? · Umsatz?
-//    4. Argumentieren– Zusammenfassen (Ja-Kette) + Pain + sanfter Interesse-Check
-//    5. Terminieren  – erst Zustimmung holen, DANN konkreten Tag vorschlagen
-//
-//  Jeder Schritt = eine Kundenaussage + die ideale Flatpay-Antwort + ein
-//  kurzer Technik-Hinweis (Coaching). Rolle, Anbieter und mehrere Varianten
-//  werden pro Gespräch zufällig gewürfelt – logisch sortiert, nie zusammenhanglos.
+//    1. Begrüßung    – Entscheider erreichen, locker rein, zur Kartenfrage
+//    2. Kontaktieren – „mit Karte zahlen?" + Anbieter erfragen
+//    3. Informieren  – Pain annehmend platzieren + Erfassung + Umsatz
+//    4. Argumentieren– Zusammenfassen (Ja-Kette) + Nutzen, ohne Druck
+//    5. Terminieren  – JETZT Flatpay nennen + Termin; Einwände charmant auf
+//                      den Vor-Ort-Termin lenken
 // ─────────────────────────────────────────────────────────────────────────
 
 export type Status = 'ja' | 'jaaber' | 'nein'
 export type CustomerType = 'inhaber' | 'mitarbeiter'
 
 export interface Turn {
-  /** Wer gerade spricht (Label über dem Text) */
   speaker: string
-  /** Was der/die Gesprächspartner:in sagt */
   customer: string
-  /** Ampel-Einordnung der Stimmung */
   status: Status
-  /** Die ideale Flatpay-Antwort */
   response: string
-  /** Kurzer Technik-/Coaching-Hinweis */
   hint: string
 }
 
@@ -58,236 +56,206 @@ export const STATUS_LABEL: Record<Status, string> = {
   nein: 'Abblocken',
 }
 
-export const OPENING = 'Schönen Guten Tag, spreche ich gerade mit dem Inhaber?'
+export const OPENING = 'Schönen guten Tag, spreche ich gerade mit dem Inhaber?'
 
 function pick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)]
 }
 
-// ── Anbieter inkl. Pain Point (für die Argumentation) ───────────────────────
+// ── Anbieter inkl. Pain Point (passt in „… zahlt bei {name} {pain}") ────────
 const PROVIDERS: { name: string; pain: string }[] = [
-  {
-    name: 'Payone',
-    pain: 'da hängt meistens noch Gerätemiete plus gestaffelte Gebühren auf jede Karte dran – und der Support ist nur tagsüber erreichbar',
-  },
-  {
-    name: 'der Sparkasse',
-    pain: 'da zahlt man meistens gestaffelte Sätze je Kartentyp – und den Support gibt’s nur von 9 bis 17 Uhr',
-  },
-  {
-    name: 'SumUp',
-    pain: 'da kauft man die Geräte extra und landet beim Support meistens nur bei einem Chatbot',
-  },
-  {
-    name: 'TeleCash',
-    pain: 'da habt ihr meistens unterschiedliche Sätze je Karte und zusätzlich noch Kosten pro Transaktion',
-  },
-  {
-    name: 'Vert',
-    pain: 'da zahlt man unterschiedlich auf EC-, Kredit- und Auslandskarten – und das Geld kommt oft nur wöchentlich',
-  },
-  {
-    name: 'Nexi',
-    pain: 'da hängt meistens noch Gerätemiete plus separate Gebühren auf Kredit- und Auslandskarten dran',
-  },
+  { name: 'Payone', pain: 'noch Gerätemiete plus gestaffelte Gebühren auf jede Karte' },
+  { name: 'der Sparkasse', pain: 'gestaffelte Sätze je Kartentyp – und Support gibt’s nur tagsüber' },
+  { name: 'SumUp', pain: 'die Geräte extra und kommt beim Support meist nur an einen Chatbot' },
+  { name: 'TeleCash', pain: 'unterschiedliche Sätze je Karte plus extra Kosten pro Transaktion' },
+  { name: 'Vert', pain: 'unterschiedlich auf EC-, Kredit- und Auslandskarten – und das Geld kommt nur wöchentlich' },
+  { name: 'Nexi', pain: 'noch Gerätemiete plus separate Gebühren auf Kredit- und Auslandskarten' },
 ]
 
-// ── Phase 1 · Begrüßung ─────────────────────────────────────────────────────
+// ── Phase 1 · Begrüßung (locker rein, noch kein Flatpay) ────────────────────
 function buildBegruessung(type: CustomerType): Turn[] {
   if (type === 'inhaber') {
     return [
       pick<Turn>([
         {
           speaker: 'Inhaber',
-          customer: 'Ja, am Apparat. Mit wem spreche ich?',
+          customer: 'Ja, am Apparat.',
           status: 'ja',
           response:
-            'Schön, dass ich Sie direkt erreiche! Mein Name ist Paul von Flatpay. Ich halt’s ganz kurz – und wenn’s gerade nicht passt, sagen Sie einfach Bescheid. In Ordnung?',
-          hint: 'Freundlich, kurz, um Erlaubnis fragen – kein Pitch-Monolog.',
+            'Schönen guten Tag! 😊 Schön, dass ich Sie direkt erreiche. Ganz kurz – kann man bei Ihnen eigentlich mit Karte zahlen?',
+          hint: 'Locker & positiv rein – noch NICHT von Flatpay reden. Direkt zur Kartenfrage.',
         },
         {
           speaker: 'Inhaber',
           customer: 'Ja, der bin ich. Worum geht’s denn?',
           status: 'nein',
           response:
-            'Ganz kurz: Es geht um Ihre Kartenzahlung. Ich würde Ihnen gern zwei, drei kurze Fragen stellen – wenn sich daraus nichts ergibt, sind wir in einer Minute durch. Okay?',
-          hint: 'Neugier wecken, Mini-Commitment statt Verkaufsdruck.',
+            'Ach, ganz unkompliziert – es geht nur kurz um Ihre Kartenzahlung im Laden. 😊 Sagen Sie, kann man bei Ihnen denn mit Karte zahlen?',
+          hint: 'Nicht gleich Flatpay nennen – charmant ausweichen und natürlich überleiten.',
         },
       ]),
     ]
   }
-  // Mitarbeiter:in → Gatekeeper sauber nehmen, zum Entscheider durchstellen
   return [
     pick<Turn>([
       {
         speaker: 'Mitarbeiter:in',
-        customer: 'Der Chef ist gerade nicht am Telefon. Worum geht’s denn?',
+        customer: 'Der Chef ist gerade nicht am Telefon. Worum geht’s?',
         status: 'jaaber',
         response:
-          'Kein Thema! Es geht ganz kurz um die Kartenzahlung. Ist der Inhaber vielleicht in der Nähe – oder sagen Sie mir, wann ich ihn am besten erreiche?',
-        hint: 'Gatekeeper freundlich nehmen, gezielt zum Entscheider lotsen.',
+          'Kein Thema! 😊 Ist er vielleicht gleich kurz erreichbar – oder sagen Sie mir, wann ich ihn am besten erwische?',
+        hint: 'Freundlich zum Inhaber lotsen, nichts beim Mitarbeiter verkaufen.',
       },
       {
         speaker: 'Mitarbeiter:in',
-        customer: 'Ich bin nur Angestellte:r, das entscheidet der Chef.',
+        customer: 'Ich bin nur Angestellte:r, das macht der Chef.',
         status: 'jaaber',
         response:
-          'Alles gut, dann sind Sie genau richtig, um mich kurz weiterzuleiten. 😊 Ist der Chef gerade da? Es dauert wirklich nur einen Moment.',
-        hint: 'Nicht beim Mitarbeiter pitchen – höflich zum Inhaber führen.',
+          'Alles gut! 😊 Dann stellen Sie mich am besten kurz durch – ist der Chef gerade da? Dauert wirklich nur einen Moment.',
+        hint: 'Locker bleiben, gezielt zum Entscheider.',
       },
     ]),
     {
       speaker: 'Inhaber',
-      customer: 'Ja, hallo? Was kann ich für Sie tun?',
+      customer: 'Ja, hallo? Was gibt’s?',
       status: 'ja',
       response:
-        'Schön, dass es klappt! Paul von Flatpay – ich mach’s ganz kurz und Sie sagen mir einfach, ob’s gerade passt. In Ordnung?',
-      hint: 'Neu starten, Erlaubnis einholen, Tempo rausnehmen.',
+        'Schönen guten Tag! 😊 Schön, dass es klappt. Ganz kurz – kann man bei Ihnen eigentlich mit Karte zahlen?',
+      hint: 'Neu & locker starten, direkt in die Kartenfrage – noch kein Flatpay.',
     },
   ]
 }
 
-// ── Phase 2 · Kontaktieren ──────────────────────────────────────────────────
+// ── Phase 2 · Kontaktieren (Karte? + Anbieter) ──────────────────────────────
 function buildKontaktieren(provider: string): Turn[] {
-  const brushOff = pick<Turn>([
+  const cardYes = pick<Turn>([
     {
       speaker: 'Inhaber',
-      customer: 'Ehrlich gesagt haben wir gerade kein Interesse.',
-      status: 'jaaber',
-      response:
-        'Total verständlich – das sagen die meisten zuerst. 😊 Genau deshalb nur eine kurze Frage vorab, dann wissen Sie selbst, ob sich’s überhaupt lohnt. Passt das?',
-      hint: 'Einwand annehmen, nicht dagegenreden. Erlaubnis für eine Frage.',
+      customer: 'Ja, klar – EC und Kreditkarte.',
+      status: 'ja',
+      response: 'Super! 😊 Und bei welchem Anbieter seid ihr da aktuell?',
+      hint: 'Positiv bestätigen, offene Frage nach dem Anbieter – die ist nötig.',
     },
     {
       speaker: 'Inhaber',
-      customer: 'Wir sind eigentlich ganz zufrieden.',
-      status: 'jaaber',
-      response:
-        'Schön zu hören! Die meisten Zufriedenen wissen aber gar nicht genau, was sie unterm Strich zahlen. Darf ich kurz fragen, mit wem Sie aktuell arbeiten?',
-      hint: 'Zufriedenheit bestätigen, dann sanft Neugier öffnen.',
-    },
-    {
-      speaker: 'Inhaber',
-      customer: 'Wir bekommen ständig solche Anrufe.',
-      status: 'jaaber',
-      response:
-        'Glaub ich Ihnen sofort! 😅 Ich mach’s anders: eine ehrliche Frage, und wenn’s nicht passt, sind Sie mich direkt wieder los. Deal?',
-      hint: 'Pattern Interrupt – anders sein als der Rest, kurz halten.',
-    },
-    {
-      speaker: 'Inhaber',
-      customer: 'Ich hab gerade ehrlich gesagt wenig Zeit.',
-      status: 'jaaber',
-      response:
-        'Verstehe – ich brauche auch nur einen Moment. Eine kurze Frage, dann entscheiden Sie, ob es sich lohnt weiterzureden. Okay?',
-      hint: 'Zeit-Einwand entkräften, Kontrolle beim Kunden lassen.',
+      customer: 'Ja, natürlich kann man hier mit Karte zahlen.',
+      status: 'ja',
+      response: 'Perfekt! 😊 Und mit wem arbeitet ihr da aktuell zusammen?',
+      hint: 'Kurz loben, dann sauber zur Anbieterfrage.',
     },
   ])
 
-  const qualify: Turn = {
+  const named: Turn = {
     speaker: 'Inhaber',
-    customer: `Na gut, eine Frage. Wir machen das aktuell über ${provider}.`,
+    customer: `Aktuell läuft das über ${provider}.`,
     status: 'ja',
-    response: `Ah, ${provider} – kenn ich gut. Damit ich Ihnen nichts Falsches erzähle: Dürfte ich Ihnen kurz zwei, drei Sachen dazu stellen? Dann sehen wir schwarz auf weiß, ob ein Vergleich sich für Sie überhaupt lohnt.`,
-    hint: 'Anbieter neutral aufnehmen, sauberer Übergang zu den Pflichtfragen.',
+    response: `Ah, ${provider} – kenn ich gut! 😊 Dann zahlt ihr da bestimmt noch Gerätemiete und auf jede Karte unterschiedliche Gebühren, oder?`,
+    hint: 'Anbieter aufgreifen und mit einer Annahme den Pain platzieren – kein offenes Ja/Nein-Risiko.',
   }
 
-  return [brushOff, qualify]
+  return [cardYes, named]
 }
 
-// ── Phase 3 · Informieren (3 PFLICHTFRAGEN) ─────────────────────────────────
+// ── Phase 3 · Informieren (annehmend, wenige Fragen) ────────────────────────
 function buildInformieren(): Turn[] {
   return [
     {
       speaker: 'Inhaber',
-      customer: 'Klar, fragen Sie.',
-      status: 'ja',
-      response:
-        'Super. Nur damit ich’s richtig zuordne – Sie sind der Inhaber und entscheiden das hier selbst, oder?',
-      hint: 'Pflichtfrage 1: Entscheider bestätigen – startet die Ja-Kette.',
-    },
-    {
-      speaker: 'Inhaber',
-      customer: pick(['Ja, das entscheide ich.', 'Genau, das läuft alles über mich.']),
-      status: 'ja',
-      response:
-        'Perfekt. Und tippen Sie die Beträge eigentlich von Hand ins Kartengerät ein, oder kommen die automatisch aus der Kasse?',
-      hint: 'Pflichtfrage 2: Erfassungsart – deckt oft Sparpotenzial auf.',
-    },
-    {
-      speaker: 'Inhaber',
       customer: pick([
-        'Von Hand, direkt ins Gerät.',
-        'Wir tippen das manuell ein, ja.',
+        'Ja, kann gut sein.',
+        'Ehrlich gesagt weiß ich’s gar nicht so genau.',
       ]),
+      status: 'jaaber',
+      response:
+        'Dachte ich mir. 😊 Und die Beträge tippt ihr von Hand ins Gerät ein, richtig?',
+      hint: 'Annahme bestätigen lassen, dann die Erfassung annehmend abklopfen.',
+    },
+    {
+      speaker: 'Inhaber',
+      customer: pick(['Ja, von Hand.', 'Genau, alles manuell.']),
       status: 'ja',
       response:
-        'Alles klar. Und wenn ich fragen darf – wie viel Umsatz macht ihr ungefähr im Monat über Karte? Nur grob, damit ich’s einschätzen kann.',
-      hint: 'Pflichtfrage 3: Umsatz – die Basis für den Vergleich.',
+        'Perfekt. Und wie viel macht ihr so im Monat über Karte – ganz grob?',
+      hint: 'Umsatz ist die nötige Basis für den Vergleich – ruhig und beiläufig fragen.',
     },
   ]
 }
 
-// ── Phase 4 · Argumentieren ─────────────────────────────────────────────────
+// ── Phase 4 · Argumentieren (Zusammenfassen + Nutzen, ohne Druck) ───────────
 function buildArgumentieren(provider: string, pain: string): Turn[] {
   const revenue = pick(['So um die 12.000 im Monat', 'Grob 20.000', 'Vielleicht 8.000'])
   const objection = pick([
-    'aber wechseln will ich eigentlich nicht',
-    'aber so richtig Zeit für sowas hab ich nicht',
-    'aber meine Frau macht die Buchhaltung, die müsste da mit rein',
+    'Aber wechseln will ich eigentlich nicht',
+    'Aber so richtig Zeit für sowas hab ich nicht',
+    'Klingt aber erstmal nach Aufwand',
   ])
 
   const summarize: Turn = {
     speaker: 'Inhaber',
-    customer: `${revenue}. ${objection.charAt(0).toUpperCase() + objection.slice(1)}.`,
+    customer: `${revenue}. ${objection}.`,
     status: 'jaaber',
-    response: `Verstehe ich gut. Ich fass nur mal kurz zusammen: Sie sind der Inhaber, tippen die Beträge von Hand ins Gerät ein und machen einen ordentlichen Umsatz über Karte. Und genau bei ${provider} ist es so, dass ${pain}. Das heißt, bei Ihrem Volumen zahlt man da schnell mehr als nötig.`,
-    hint: 'Zusammenfassen (Ja-Kette) + Pain ruhig benennen – kein Druck, kein Termin.',
+    response: `Verstehe ich total – und müssen Sie auch gar nicht sofort. 😊 Ich fass nur kurz zusammen: Ihr tippt von Hand ein und zahlt bei ${provider} ${pain}. Bei dem Umsatz zahlt man da gut drauf – und genau da gäb’s eine Möglichkeit ganz ohne Gerätemiete und mit einem glatten, fairen Satz.`,
+    hint: 'Zusammenfassen (Ja-Kette) + Pain + Nutzen, ganz ohne Druck. Noch kein Flatpay-Name.',
   }
 
-  const value: Turn = {
+  const bridge: Turn = {
     speaker: 'Inhaber',
     customer: pick([
-      'Hm, gut möglich, dass da was geht.',
-      'Das stimmt schon, drüber nachgedacht hab ich nie.',
-      'Klingt nicht verkehrt.',
+      'Hm, klingt erstmal nicht verkehrt.',
+      'Na gut, erzählen Sie mal.',
+      'Okay, das hört sich interessant an.',
     ]),
     status: 'jaaber',
     response:
-      'Genau das meine ich. Bei uns gibt’s keine Gerätemiete, keine monatliche Grundgebühr und einen fairen, glatten Satz – plus echten Support, der wirklich rangeht. Am Ende vergleichen wir das einfach mit Ihrer letzten Abrechnung. Wäre so ein kostenloser Vergleich grundsätzlich interessant für Sie?',
-    hint: 'Nutzen konkret machen, dann SANFTER Interesse-Check – noch kein Tag.',
+      'Klasse! 😊 Am besten rechnet euch das mein Kollege einfach mal in Ruhe direkt vor Ort durch – komplett kostenlos und unverbindlich.',
+    hint: 'Sanft zum Vor-Ort-Termin überleiten – KEINE Ja/Nein-Frage, die ein Nein einlädt.',
   }
 
-  return [summarize, value]
+  return [summarize, bridge]
 }
 
-// ── Phase 5 · Terminieren ───────────────────────────────────────────────────
+// ── Phase 5 · Terminieren (jetzt Flatpay + Termin; Einwände → Vor Ort) ──────
 function buildTerminieren(): Turn[] {
-  return [
+  const open: Turn = {
+    speaker: 'Inhaber',
+    customer: pick(['Und wie läuft das jetzt genau?', 'Okay, und was heißt das konkret?']),
+    status: 'ja',
+    response:
+      'Ja, ich bin Paul von Flatpay. 😊 Mein Kollege wäre am Montag um 15 Uhr bei euch in [Ort in der Nähe] und wollte kurz vorbeikommen, um euch einen kostenlosen und unverbindlichen Preisvergleich anzubieten. Seid ihr Montag im Geschäft?',
+    hint: 'JETZT erst Flatpay nennen – gleich mit dem konkreten Terminvorschlag.',
+  }
+
+  const close = pick<Turn>([
     {
       speaker: 'Inhaber',
-      customer: pick([
-        'Ja, schaden kann’s ja nicht.',
-        'Grundsätzlich schon, klar.',
-        'Interessant wär’s schon.',
-      ]),
-      status: 'ja',
+      customer: 'Schicken Sie mir lieber erst mal was per Mail.',
+      status: 'jaaber',
       response:
-        'Schön! Am einfachsten zeigt Ihnen das mein Kollege kurz direkt vor Ort – er ist nächste Woche ohnehin bei Ihnen in der Gegend. Das dauert keine 15 Minuten und kostet Sie nichts. Wäre das für Sie in Ordnung?',
-      hint: 'Termin über den Kollegen einleiten, Aufwand bewusst kleinhalten.',
+        'Klar, könnt ich machen – aber ehrlich, 😊 so eine Mail geht im Alltag schnell unter. Mein Kollege ist eh bei euch in der Gegend und zeigt’s euch in 10 Minuten persönlich – dann seht ihr sofort schwarz auf weiß, was sich lohnt. Passt Montag 15 Uhr?',
+      hint: 'Mail charmant abwehren, klar auf den persönlichen Vor-Ort-Termin lenken.',
     },
     {
       speaker: 'Inhaber',
-      customer: pick(['Ja, das können wir so machen.', 'Okay, einverstanden.']),
+      customer: 'Können wir das nicht einfach telefonisch machen?',
+      status: 'jaaber',
+      response:
+        'Versteh ich! 😊 Aber gerade vor Ort holt mein Kollege bei den Konditionen einfach mehr für euch raus – persönlich verhandelt sich’s viel besser als am Telefon, und kosten tut’s euch ja nichts. Montag 15 Uhr seid ihr doch im Laden, oder?',
+      hint: 'Kein Telefon-Termin – charmant auf Vor Ort lenken (bessere Verhandlung, bessere Konditionen).',
+    },
+    {
+      speaker: 'Inhaber',
+      customer: 'Ja, Montag passt.',
       status: 'ja',
       response:
-        'Perfekt. Dann sage ich ihm, er kommt am Montag gegen 15 Uhr bei Ihnen vorbei – passt Ihnen das, oder wäre Dienstag besser? Ich brauche nur ganz kurz Ihren Namen für den Termin.',
-      hint: 'Jetzt erst der konkrete Tag – mit sanfter Alternativfrage statt Druck.',
+        'Perfekt, dann trag ich das so ein! 😊 Mein Kollege bringt den Vergleich direkt mit. Wie ist Ihr Name für den Termin? Klasse – bis Montag! 👊',
+      hint: 'Sauber bestätigen, Namen sichern, positiv abschließen.',
     },
-  ]
+  ])
+
+  return [open, close]
 }
 
-// ── Generator: würfelt einen kompletten, logisch sortierten Verlauf ─────────
+// ── Generator ───────────────────────────────────────────────────────────────
 export function generateConversation(): Conversation {
   const customerType: CustomerType = Math.random() < 0.5 ? 'inhaber' : 'mitarbeiter'
   const provider = pick(PROVIDERS)

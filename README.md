@@ -9,6 +9,12 @@ Schwarz-Weiß-Design von Flatpay mit ruhigen Glas-Flächen (angelehnt an die
 Apple-Intelligence- & Gemini-Ästhetik). Statt Eule oder Gemini-Stern feiert
 dich das **Flatpay-Logo** als animierte Komponente.
 
+## Zugang
+
+Beim Start fragt die App einen 4-stelligen **Zugangscode** ab (einfaches
+Gate vor dem Onboarding). Standard-Code: **`0526`** – bei Bedarf in
+`src/App.tsx` (`ACCESS_CODE`) änderbar.
+
 ## Zwei Modi
 
 Nach dem Onboarding wählst du auf dem Startbildschirm einen Modus:

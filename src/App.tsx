@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   generateConversation,
   PHASES,
@@ -11,9 +11,10 @@ import {
 import { FlatpayMark, FlatpayMascot } from './FlatpayMark'
 import { Companion } from './Companion'
 
-type Screen = 'onboarding' | 'start' | 'play' | 'celebrate' | 'done' | 'companion'
+type Screen = 'auth' | 'onboarding' | 'start' | 'play' | 'celebrate' | 'done' | 'companion'
 
 const ONBOARDING_KEY = 'fp-onboarded-v1'
+const ACCESS_CODE = '0526'
 
 const PRAISE = [
   'Phase gemeistert.',
@@ -24,9 +25,8 @@ const PRAISE = [
 ]
 
 export function App() {
-  const [screen, setScreen] = useState<Screen>(() =>
-    localStorage.getItem(ONBOARDING_KEY) ? 'start' : 'onboarding',
-  )
+  // Start immer im Zugangs-Gate (Fake-Auth, Code 0526)
+  const [screen, setScreen] = useState<Screen>('auth')
   const [convo, setConvo] = useState<Conversation | null>(null)
   const [phaseIdx, setPhaseIdx] = useState(0)
   const [stepIdx, setStepIdx] = useState(0)
@@ -65,6 +65,13 @@ export function App() {
     <div className="app">
       <Backdrop />
       <main className="frame">
+        {screen === 'auth' && (
+          <AuthGate
+            onSuccess={() =>
+              setScreen(localStorage.getItem(ONBOARDING_KEY) ? 'start' : 'onboarding')
+            }
+          />
+        )}
         {screen === 'onboarding' && <Onboarding onDone={finishOnboarding} />}
         {screen === 'start' && (
           <StartScreen
@@ -115,6 +122,66 @@ function Backdrop() {
       <div className="glow glow-c" />
       <div className="grain" />
     </div>
+  )
+}
+
+// ── Zugangs-Gate (Fake-Auth, Code 0526) ────────────────────────────────────
+function AuthGate({ onSuccess }: { onSuccess: () => void }) {
+  const [code, setCode] = useState('')
+  const [error, setError] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const v = e.target.value.replace(/\D/g, '').slice(0, 4)
+    setCode(v)
+    setError(false)
+    if (v.length === 4) {
+      if (v === ACCESS_CODE) {
+        onSuccess()
+      } else {
+        setError(true)
+        setTimeout(() => setCode(''), 650)
+      }
+    }
+  }
+
+  return (
+    <section className="screen auth" onClick={() => inputRef.current?.focus()}>
+      <div className="auth-center">
+        <FlatpayMark size={72} framed />
+        <h1 className="auth-title">Zugangscode</h1>
+        <p className="auth-sub">Gib den 4-stelligen Code ein, um zu starten.</p>
+
+        <div className={`pin ${error ? 'pin-error' : ''}`}>
+          {[0, 1, 2, 3].map((i) => (
+            <span
+              key={i}
+              className={`pin-cell ${code.length > i ? 'pin-filled' : ''} ${
+                code.length === i ? 'pin-cursor' : ''
+              }`}
+            >
+              {code[i] ? '•' : ''}
+            </span>
+          ))}
+        </div>
+
+        <p className={`auth-error ${error ? 'is-visible' : ''}`}>
+          Falscher Code – versuch’s nochmal.
+        </p>
+
+        <input
+          ref={inputRef}
+          className="pin-input"
+          value={code}
+          onChange={onChange}
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          autoFocus
+          maxLength={4}
+          aria-label="Zugangscode"
+        />
+      </div>
+    </section>
   )
 }
 

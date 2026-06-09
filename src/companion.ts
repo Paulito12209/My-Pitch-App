@@ -1,14 +1,19 @@
 // ─────────────────────────────────────────────────────────────────────────
 //  Begleitmodus · Live-Gesprächsbaum
 //
-//  Anders als die Simulation ist das hier ein navigierbarer Skript-Guide für
-//  den ECHTEN Anruf. Zwei Knotentypen:
-//    • say    – der Satz, den DU sagst (editierbar). Unten: ✏️ + „Weiter".
-//    • branch – wie das Gegenüber reagiert: antippbare Karten (nach
-//               Wahrscheinlichkeit sortiert). Tippen führt direkt weiter.
+//  Abgestimmt aufs Trainer-Feedback:
+//    • Locker & positiv, NICHT zu früh „von Flatpay" – der Name + Termin
+//      kommen erst in Phase 5.
+//    • Natürlicher Einstieg: Begrüßung → „mit Karte zahlen?" → „welcher
+//      Anbieter?" → Pain annehmend platzieren → Termin.
+//    • Wenige Ja/Nein-Fragen, die ein Nein einladen – lieber annehmende
+//      Aussagen, die führen.
+//    • Kein Telefon-Termin (machen wir nicht) → charmant auf Vor Ort lenken.
+//    • „Per Mail"-Einwand → ebenfalls charmant auf den persönlichen Termin.
 //
-//  Anbieter werden über {provider}/{pain} in die Texte eingesetzt, sobald man
-//  im Anbieter-Branch eine Option wählt.
+//  Knotentypen:  say  = Satz, den DU sagst (editierbar)
+//                branch = Reaktionen des Gegenübers (antippbar, nach
+//                         Wahrscheinlichkeit sortiert)
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface ProviderCtx {
@@ -17,13 +22,19 @@ export interface ProviderCtx {
 }
 
 export const COMPANION_PROVIDERS: ProviderCtx[] = [
-  { name: 'SumUp', pain: 'man die Geräte extra zahlt und beim Support meist nur an einen Chatbot kommt' },
-  { name: 'der Sparkasse', pain: 'man gestaffelte Sätze je Kartentyp zahlt und der Support nur von 9 bis 17 Uhr läuft' },
-  { name: 'Payone', pain: 'meist noch Gerätemiete plus gestaffelte Gebühren auf jede Karte dranhängen' },
-  { name: 'Nexi', pain: 'oft noch Gerätemiete plus separate Gebühren auf Kredit- und Auslandskarten anfallen' },
-  { name: 'TeleCash', pain: 'unterschiedliche Sätze je Karte plus Kosten pro Transaktion anfallen' },
-  { name: 'Vert', pain: 'man unterschiedlich auf EC-, Kredit- und Auslandskarten zahlt und das Geld nur wöchentlich kommt' },
+  { name: 'SumUp', pain: 'die Geräte extra und kommt beim Support meist nur an einen Chatbot' },
+  { name: 'Sparkasse', pain: 'gestaffelte Sätze je Kartentyp – und Support nur tagsüber' },
+  { name: 'Payone', pain: 'noch Gerätemiete plus gestaffelte Gebühren auf jede Karte' },
+  { name: 'Nexi', pain: 'noch Gerätemiete plus separate Gebühren auf Kredit- und Auslandskarten' },
+  { name: 'TeleCash', pain: 'unterschiedliche Sätze je Karte plus extra Kosten pro Transaktion' },
+  { name: 'Vert', pain: 'unterschiedlich auf EC-, Kredit- und Auslandskarten – und das Geld kommt nur wöchentlich' },
 ]
+
+// Wenn jemand den Anbieter nicht kennt → meist Hausbank
+const HAUSBANK: ProviderCtx = {
+  name: 'der Hausbank',
+  pain: 'meist noch Gerätemiete und auf jede Karte eine andere Gebühr',
+}
 
 export interface SayNode {
   kind: 'say'
@@ -48,9 +59,8 @@ export type CompanionNode = SayNode | BranchNode
 export const COMPANION_START = 'start'
 
 const providerOptions: BranchOption[] = COMPANION_PROVIDERS.map((p) => ({
-  // sichtbares Label ohne Artikel ("der Sparkasse" → "Sparkasse")
-  label: p.name.replace(/^der /, ''),
-  to: 'say_info_intro',
+  label: p.name,
+  to: 'say_pain_assume',
   provider: p,
 }))
 
@@ -60,7 +70,7 @@ export const COMPANION_TREE: Record<string, CompanionNode> = {
     kind: 'say',
     phase: 1,
     title: 'Begrüßung',
-    text: 'Schönen guten Tag! Mein Name ist Paul von Flatpay. Spreche ich gerade mit dem Inhaber?',
+    text: 'Schönen guten Tag! Spreche ich gerade mit dem Inhaber?',
     next: 'b_owner',
   },
   b_owner: {
@@ -68,24 +78,31 @@ export const COMPANION_TREE: Record<string, CompanionNode> = {
     phase: 1,
     title: 'Wie reagiert das Gegenüber?',
     options: [
-      { label: 'Ja, am Apparat.', to: 'say_owner_yes' },
+      { label: 'Ja, am Apparat.', to: 'say_card_q' },
       { label: "Worum geht's denn?", to: 'say_worum' },
       { label: 'Ich bin nur Mitarbeiter:in.', to: 'say_employee' },
       { label: 'Der Chef ist gerade nicht da.', to: 'say_notthere' },
     ],
   },
+  say_card_q: {
+    kind: 'say',
+    phase: 1,
+    title: 'Locker zur Kartenfrage',
+    text: 'Perfekt! 😊 Ganz kurz – kann man bei Ihnen eigentlich mit Karte zahlen?',
+    next: 'b_card',
+  },
   say_worum: {
     kind: 'say',
     phase: 1,
-    title: 'Kurz erklären',
-    text: 'Ganz kurz: Es geht um Ihre Kartenzahlung. Ich stelle Ihnen nur zwei, drei kurze Fragen – wenn nichts dabei ist, sind wir gleich durch. Okay?',
-    next: 'b_permission',
+    title: 'Charmant ausweichen',
+    text: 'Ach, ganz unkompliziert – es geht nur kurz um Ihre Kartenzahlung im Laden. 😊 Sagen Sie, kann man bei Ihnen mit Karte zahlen?',
+    next: 'b_card',
   },
   say_employee: {
     kind: 'say',
     phase: 1,
     title: 'Zum Inhaber lotsen',
-    text: 'Alles gut – dann leiten Sie mich am besten kurz weiter. Ist der Inhaber gerade da? Es dauert wirklich nur einen Moment.',
+    text: 'Alles gut! 😊 Stellen Sie mich am besten kurz durch – ist der Chef gerade da? Dauert wirklich nur einen Moment.',
     next: 'b_employee',
   },
   b_employee: {
@@ -93,7 +110,7 @@ export const COMPANION_TREE: Record<string, CompanionNode> = {
     phase: 1,
     title: 'Wie reagiert das Gegenüber?',
     options: [
-      { label: 'Moment, ich hole ihn kurz.', to: 'say_owner_yes' },
+      { label: 'Moment, ich hol ihn kurz.', to: 'say_card_q' },
       { label: 'Nein, er ist nicht da.', to: 'say_notthere' },
     ],
   },
@@ -101,126 +118,118 @@ export const COMPANION_TREE: Record<string, CompanionNode> = {
     kind: 'say',
     phase: 1,
     title: 'Rückruf sichern',
-    text: 'Kein Problem! Wann erreiche ich ihn am besten – eher vormittags oder nachmittags?',
+    text: 'Kein Problem! 😊 Wann erreiche ich ihn am besten – eher vormittags oder nachmittags?',
     next: 'end_callback',
   },
   end_callback: {
     kind: 'say',
     phase: 1,
     title: 'Freundlich beenden',
-    text: 'Super, dann melde ich mich genau dann nochmal. Vielen Dank und bis dahin!',
+    text: 'Super, dann meld ich mich genau dann nochmal. Klasse, bis dahin – schönen Tag! 👍',
     next: null,
   },
 
   // ── Phase 2 · Kontaktieren ───────────────────────────────────────────────
-  say_owner_yes: {
+  b_card: {
+    kind: 'branch',
+    phase: 2,
+    title: 'Kann man mit Karte zahlen?',
+    options: [
+      { label: 'Ja, klar.', to: 'say_provider_q' },
+      { label: 'Nur EC, keine Kreditkarte.', to: 'say_provider_q' },
+      { label: 'Nein, nur Bargeld.', to: 'say_nocard' },
+    ],
+  },
+  say_nocard: {
     kind: 'say',
     phase: 2,
-    title: 'Einstieg',
-    text: 'Schön, dass ich Sie direkt erreiche! Ich halt’s ganz kurz: Es geht um Ihre Kartenzahlung – darf ich Ihnen dazu zwei, drei kurze Fragen stellen?',
-    next: 'b_permission',
+    title: 'Kein Kartengerät',
+    text: 'Ah, alles klar! 😊 Viele steigen gerade um, weil immer mehr Kunden mit Karte zahlen wollen – und ganz ohne Gerätemiete und Grundgebühr lohnt sich das schnell. Wär das grundsätzlich mal interessant für euch?',
+    next: 'b_nocard',
   },
-  b_permission: {
+  b_nocard: {
     kind: 'branch',
     phase: 2,
     title: 'Wie reagiert das Gegenüber?',
     options: [
-      { label: 'Ja, fragen Sie.', to: 'say_provider_q' },
-      { label: 'Eigentlich kein Interesse.', to: 'say_obj_nointerest' },
-      { label: 'Wir sind zufrieden.', to: 'say_obj_happy' },
-      { label: 'Ich hab gerade keine Zeit.', to: 'say_obj_notime' },
+      { label: 'Ja, könnte interessant sein.', to: 'say_termin_intro' },
+      { label: 'Nein, brauchen wir nicht.', to: 'say_nocard_end' },
     ],
   },
-  say_obj_nointerest: {
+  say_nocard_end: {
     kind: 'say',
     phase: 2,
-    title: 'Einwand annehmen',
-    text: 'Total verständlich – das sagen die meisten zuerst. 😊 Genau deshalb nur eine kurze Frage, dann wissen Sie selbst, ob sich’s lohnt: Mit wem arbeiten Sie aktuell?',
-    next: 'b_provider',
-  },
-  say_obj_happy: {
-    kind: 'say',
-    phase: 2,
-    title: 'Zufriedenheit nutzen',
-    text: 'Schön zu hören! Die meisten Zufriedenen wissen aber gar nicht genau, was sie unterm Strich zahlen. Mit wem arbeiten Sie denn aktuell?',
-    next: 'b_provider',
-  },
-  say_obj_notime: {
-    kind: 'say',
-    phase: 2,
-    title: 'Zeit-Einwand',
-    text: 'Verstehe – ich brauche auch nur einen Moment. Eine kurze Frage: Mit wem läuft Ihre Kartenzahlung aktuell?',
-    next: 'b_provider',
+    title: 'Locker beenden',
+    text: 'Alles gut, danke für Ihre Zeit! 😊 Falls sich’s mal ändert, meld ich mich gern wieder. Schönen Tag noch!',
+    next: null,
   },
   say_provider_q: {
     kind: 'say',
     phase: 2,
     title: 'Anbieter erfragen',
-    text: 'Super. Mit wem arbeiten Sie denn aktuell bei der Kartenzahlung?',
+    text: 'Super! 😊 Und bei welchem Anbieter seid ihr aktuell?',
     next: 'b_provider',
   },
   b_provider: {
     kind: 'branch',
     phase: 2,
     title: 'Welchen Anbieter nennt das Gegenüber?',
-    options: providerOptions,
+    options: [
+      ...providerOptions,
+      { label: 'Weiß ich gar nicht genau.', to: 'say_pain_assume', provider: HAUSBANK },
+      { label: 'Wieso fragen Sie das?', to: 'say_why_provider' },
+    ],
+  },
+  say_why_provider: {
+    kind: 'say',
+    phase: 2,
+    title: 'Transparent bleiben',
+    text: 'Ganz transparent: Ich vergleich für euch nur kurz die Konditionen – viele zahlen nämlich mehr als nötig. 😊 Bei welchem Anbieter seid ihr denn gerade?',
+    next: 'b_provider',
   },
 
-  // ── Phase 3 · Informieren (Pflichtfragen) ────────────────────────────────
-  say_info_intro: {
+  // ── Phase 3 · Informieren (Pain annehmend platzieren) ────────────────────
+  say_pain_assume: {
     kind: 'say',
     phase: 3,
-    title: 'Anbieter aufgreifen',
-    text: 'Ah, {provider} – kenn ich gut. Damit ich Ihnen nichts Falsches erzähle, stelle ich Ihnen kurz zwei, drei Sachen dazu. Passt das?',
-    next: 'say_pf1',
+    title: 'Pain platzieren',
+    text: 'Ah, {provider} – kenn ich gut! 😊 Dann zahlt ihr da bestimmt {pain}, oder?',
+    next: 'b_pain',
   },
-  say_pf1: {
-    kind: 'say',
-    phase: 3,
-    title: 'Pflichtfrage 1 · Entscheider',
-    text: 'Nur damit ich’s richtig zuordne: Sie sind der Inhaber und entscheiden das hier selbst, oder?',
-    next: 'b_pf1',
-  },
-  b_pf1: {
+  b_pain: {
     kind: 'branch',
     phase: 3,
     title: 'Wie reagiert das Gegenüber?',
     options: [
-      { label: 'Ja, das entscheide ich.', to: 'say_pf2' },
-      { label: 'Nur zusammen mit meinem Partner.', to: 'say_pf1_partner' },
+      { label: 'Ja, kann gut sein.', to: 'say_manual' },
+      { label: 'Keine Ahnung ehrlich gesagt.', to: 'say_manual' },
+      { label: 'Nein, eigentlich nicht.', to: 'say_manual' },
     ],
   },
-  say_pf1_partner: {
+  say_manual: {
     kind: 'say',
     phase: 3,
-    title: 'Partner einbinden',
-    text: 'Alles gut – am besten ist Ihr Partner beim Termin einfach dabei, dann haben Sie beide die Zahlen direkt vor sich.',
-    next: 'say_pf2',
+    title: 'Erfassung abklopfen',
+    text: 'Dachte ich mir. 😊 Und die Beträge tippt ihr von Hand ins Gerät ein, richtig?',
+    next: 'b_manual',
   },
-  say_pf2: {
-    kind: 'say',
-    phase: 3,
-    title: 'Pflichtfrage 2 · Erfassung',
-    text: 'Perfekt. Und tippen Sie die Beträge eigentlich von Hand ins Kartengerät ein, oder kommen die automatisch aus der Kasse?',
-    next: 'b_pf2',
-  },
-  b_pf2: {
+  b_manual: {
     kind: 'branch',
     phase: 3,
     title: 'Wie reagiert das Gegenüber?',
     options: [
-      { label: 'Von Hand, direkt ins Gerät.', to: 'say_pf3' },
-      { label: 'Automatisch über die Kasse.', to: 'say_pf3' },
+      { label: 'Ja, von Hand.', to: 'say_revenue' },
+      { label: 'Nein, über die Kasse.', to: 'say_revenue' },
     ],
   },
-  say_pf3: {
+  say_revenue: {
     kind: 'say',
     phase: 3,
-    title: 'Pflichtfrage 3 · Umsatz',
-    text: 'Alles klar. Und wie viel Umsatz machen Sie ungefähr im Monat über Karte? Nur grob, damit ich’s einschätzen kann.',
-    next: 'b_pf3',
+    title: 'Umsatz (grob)',
+    text: 'Perfekt. Und wie viel macht ihr so im Monat über Karte – ganz grob?',
+    next: 'b_revenue',
   },
-  b_pf3: {
+  b_revenue: {
     kind: 'branch',
     phase: 3,
     title: 'Welchen Umsatz nennt das Gegenüber?',
@@ -228,6 +237,7 @@ export const COMPANION_TREE: Record<string, CompanionNode> = {
       { label: 'Ca. 8.000 € im Monat', to: 'say_arg_summary' },
       { label: 'Ca. 15.000 € im Monat', to: 'say_arg_summary' },
       { label: 'Ca. 30.000 € im Monat', to: 'say_arg_summary' },
+      { label: 'Sag ich lieber nicht.', to: 'say_arg_summary' },
     ],
   },
 
@@ -236,47 +246,23 @@ export const COMPANION_TREE: Record<string, CompanionNode> = {
     kind: 'say',
     phase: 4,
     title: 'Zusammenfassen (Ja-Kette)',
-    text: 'Ich fass nur kurz zusammen: Sie sind der Inhaber, tippen die Beträge von Hand ein und machen ordentlich Umsatz über Karte. Und genau bei {provider} ist es so, dass {pain} – da zahlt man bei dem Volumen schnell mehr als nötig.',
+    text: 'Klasse, danke! 😊 Dann fass ich kurz zusammen: Ihr tippt von Hand ein und zahlt bei {provider} {pain}. Bei dem Umsatz zahlt man da ordentlich drauf – und genau da gäb’s eine Möglichkeit ganz ohne Gerätemiete und mit einem glatten, fairen Satz.',
     next: 'say_arg_value',
   },
   say_arg_value: {
     kind: 'say',
     phase: 4,
-    title: 'Nutzen + Interesse-Check',
-    text: 'Bei uns gibt’s keine Gerätemiete, keine monatliche Grundgebühr und einen fairen, glatten Satz – plus Support, der wirklich rangeht. Wäre so ein kostenloser Vergleich grundsätzlich interessant für Sie?',
-    next: 'b_interest',
-  },
-  b_interest: {
-    kind: 'branch',
-    phase: 4,
-    title: 'Wie reagiert das Gegenüber?',
-    options: [
-      { label: 'Ja, klingt interessant.', to: 'say_termin_intro' },
-      { label: 'Wechseln will ich eigentlich nicht.', to: 'say_obj_nochange' },
-      { label: 'Muss ich mit Partner besprechen.', to: 'say_obj_partner' },
-    ],
-  },
-  say_obj_nochange: {
-    kind: 'say',
-    phase: 4,
-    title: 'Wechsel-Einwand',
-    text: 'Müssen Sie auch gar nicht – es geht erstmal nur um den Vergleich. Wenn’s nicht besser ist, sage ich Ihnen das selbst. Kostet Sie nur 15 Minuten.',
-    next: 'say_termin_intro',
-  },
-  say_obj_partner: {
-    kind: 'say',
-    phase: 4,
-    title: 'Partner-Einwand',
-    text: 'Super – am besten ist Ihr Partner beim Termin einfach dabei, dann entscheiden Sie zu zweit mit den Zahlen vor sich.',
+    title: 'Nutzen + Überleitung',
+    text: 'Am besten rechnet euch das mein Kollege einfach mal in Ruhe direkt vor Ort durch – komplett kostenlos und unverbindlich. 😊',
     next: 'say_termin_intro',
   },
 
-  // ── Phase 5 · Terminieren ────────────────────────────────────────────────
+  // ── Phase 5 · Terminieren (jetzt Flatpay + Termin) ───────────────────────
   say_termin_intro: {
     kind: 'say',
     phase: 5,
-    title: 'Termin einleiten',
-    text: 'Am einfachsten zeigt Ihnen das mein Kollege kurz direkt vor Ort – er ist nächste Woche ohnehin bei Ihnen in der Gegend. Dauert keine 15 Minuten und kostet Sie nichts. Wäre das für Sie in Ordnung?',
+    title: 'Flatpay + Terminvorschlag',
+    text: 'Ich bin übrigens Paul von Flatpay. 😊 Mein Kollege wäre am Montag um 15 Uhr bei euch in [Ort in der Nähe] und wollte kurz vorbeikommen, um euch einen kostenlosen, unverbindlichen Preisvergleich zu zeigen. Seid ihr Montag im Geschäft?',
     next: 'b_termin',
   },
   b_termin: {
@@ -284,35 +270,60 @@ export const COMPANION_TREE: Record<string, CompanionNode> = {
     phase: 5,
     title: 'Wie reagiert das Gegenüber?',
     options: [
-      { label: 'Ja, machen wir.', to: 'say_termin_day' },
-      { label: 'Lieber telefonisch.', to: 'say_termin_phone' },
+      { label: 'Ja, Montag passt.', to: 'say_close' },
+      { label: 'Schicken Sie mir lieber was per Mail.', to: 'say_obj_mail' },
+      { label: 'Können wir das nicht telefonisch machen?', to: 'say_obj_phone' },
+      { label: 'Muss ich mir überlegen.', to: 'say_obj_think' },
     ],
   },
-  say_termin_phone: {
+  say_obj_mail: {
     kind: 'say',
     phase: 5,
-    title: 'Alternative Telefon',
-    text: 'Kein Problem, dann macht er’s ganz kurz telefonisch – genauso unverbindlich.',
-    next: 'say_termin_day',
+    title: 'Mail → Vor Ort lenken',
+    text: 'Klar, könnt ich machen – aber ehrlich, 😊 so eine Mail geht im Alltag schnell unter. Mein Kollege ist eh bei euch in der Gegend und zeigt’s euch in 10 Minuten persönlich – dann seht ihr sofort schwarz auf weiß, was sich lohnt. Passt Montag 15 Uhr?',
+    next: 'b_termin2',
   },
-  say_termin_day: {
+  say_obj_phone: {
     kind: 'say',
     phase: 5,
-    title: 'Konkreter Tag',
-    text: 'Perfekt. Dann kommt er am Montag gegen 15 Uhr – passt Ihnen das, oder wäre Dienstag besser? Ich brauche nur ganz kurz Ihren Namen für den Termin.',
-    next: 'end_success',
+    title: 'Telefon → Vor Ort lenken',
+    text: 'Versteh ich! 😊 Aber gerade vor Ort holt mein Kollege bei den Konditionen einfach mehr für euch raus – persönlich verhandelt sich’s viel besser als am Telefon. Und kosten tut’s euch ja nichts. Montag 15 Uhr seid ihr doch im Laden, oder?',
+    next: 'b_termin2',
   },
-  end_success: {
+  say_obj_think: {
+    kind: 'say',
+    phase: 5,
+    title: 'Bedenkzeit auffangen',
+    text: 'Total fair! 😊 Genau deswegen ja unverbindlich – der Vergleich kostet euch nichts außer 10 Minuten, und entscheiden tut ihr danach in Ruhe selbst. Sollen wir Montag 15 Uhr sagen?',
+    next: 'b_termin2',
+  },
+  b_termin2: {
+    kind: 'branch',
+    phase: 5,
+    title: 'Wie reagiert das Gegenüber?',
+    options: [
+      { label: 'Okay, Montag passt.', to: 'say_close' },
+      { label: 'Nein, lieber nicht.', to: 'say_softno' },
+    ],
+  },
+  say_softno: {
+    kind: 'say',
+    phase: 5,
+    title: 'Sauber rausgehen',
+    text: 'Alles gut, ich dräng Sie zu nichts! 😊 Ich meld mich in ein paar Wochen nochmal ganz locker – vielleicht passt’s dann besser. Klasse, schönen Tag noch!',
+    next: null,
+  },
+  say_close: {
     kind: 'say',
     phase: 5,
     title: 'Termin steht 🎉',
-    text: 'Klasse, der Termin steht! Vielen Dank für Ihre Zeit – mein Kollege meldet sich kurz vorher nochmal. Bis dann! 👊',
+    text: 'Perfekt, dann ist der Termin für Montag 15 Uhr fix! 😊 Mein Kollege bringt den Vergleich direkt mit. Wie ist Ihr Name für den Termin? Klasse – bis Montag! 👊',
     next: null,
   },
 }
 
 export function fillTemplate(text: string, ctx: ProviderCtx | null): string {
   return text
-    .replace(/\{provider\}/g, ctx ? ctx.name : 'Ihrem aktuellen Anbieter')
-    .replace(/\{pain\}/g, ctx ? ctx.pain : 'da oft mehr Kosten anfallen als nötig')
+    .replace(/\{provider\}/g, ctx ? ctx.name : 'eurem aktuellen Anbieter')
+    .replace(/\{pain\}/g, ctx ? ctx.pain : 'wahrscheinlich mehr als nötig')
 }
