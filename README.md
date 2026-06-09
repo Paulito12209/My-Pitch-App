@@ -9,7 +9,21 @@ Schwarz-Weiß-Design von Flatpay mit ruhigen Glas-Flächen (angelehnt an die
 Apple-Intelligence- & Gemini-Ästhetik). Statt Eule oder Gemini-Stern feiert
 dich das **Flatpay-Logo** als animierte Komponente.
 
-## Konzept
+## Zwei Modi
+
+Nach dem Onboarding wählst du auf dem Startbildschirm einen Modus:
+
+- **🎮 Simulation** – ein komplettes Gespräch frei durchspielen und üben
+  (zufälliger Kunde, zufälliger Anbieter, Aufdecken-Modus). Siehe unten.
+- **📞 Begleitmodus** – Live-Hilfe beim *echten* Anruf: ein navigierbarer
+  Skript-Guide. Du liest, was du sagst, tippst dich über Karten durch die
+  Reaktionen des Gegenübers (nach Wahrscheinlichkeit sortiert) und passt deine
+  Sätze jederzeit über das **✏️-Icon** an (lokal gespeichert). Der **Weiter**-Button
+  blendet sich beim Scrollen aus, damit du verdeckte Optionen siehst, und kommt
+  im Stillstand zurück. Der Gesprächsbaum liegt in
+  [`src/companion.ts`](src/companion.ts).
+
+## Konzept (Simulation)
 
 Jedes Gespräch ist ein **logisch aufgebauter Trichter** über 5 Phasen – mit
 mehreren Teilschritten pro Phase, damit du den Ablauf wirklich trainierst und

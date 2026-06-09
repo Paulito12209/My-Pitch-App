@@ -9,8 +9,9 @@ import {
   type Turn,
 } from './data'
 import { FlatpayMark, FlatpayMascot } from './FlatpayMark'
+import { Companion } from './Companion'
 
-type Screen = 'onboarding' | 'start' | 'play' | 'celebrate' | 'done'
+type Screen = 'onboarding' | 'start' | 'play' | 'celebrate' | 'done' | 'companion'
 
 const ONBOARDING_KEY = 'fp-onboarded-v1'
 
@@ -67,10 +68,12 @@ export function App() {
         {screen === 'onboarding' && <Onboarding onDone={finishOnboarding} />}
         {screen === 'start' && (
           <StartScreen
-            onStart={startConversation}
+            onSimulation={startConversation}
+            onCompanion={() => setScreen('companion')}
             onReplayIntro={() => setScreen('onboarding')}
           />
         )}
+        {screen === 'companion' && <Companion onQuit={() => setScreen('start')} />}
         {screen === 'play' && convo && (
           <PlayScreen
             convo={convo}
@@ -126,13 +129,13 @@ function Onboarding({ onDone }: { onDone: () => void }) {
     },
     {
       art: <FlatpayMascot size={120} />,
-      title: "So funktioniert's",
-      body: 'Der Trainer generiert einen zufälligen, logisch aufgebauten Verlauf: mal triffst du den Inhaber, mal eine:n Mitarbeiter:in. Auch der aktuelle Anbieter ist jedes Mal anders.',
+      title: 'Zwei Modi',
+      body: 'Simulation: ein komplettes Gespräch frei durchspielen und üben. Begleitmodus: Live-Hilfe beim echten Anruf — du tippst dich Karte für Karte durch und passt deine Sätze jederzeit an.',
     },
     {
       art: <FlatpayMascot size={120} />,
-      title: 'Dein Job',
-      body: 'Lies, was dein Gegenüber sagt, und deck die ideale Antwort auf. Manche Phasen haben mehrere Schritte — beim Informieren z. B. die drei Pflichtfragen. In 5 Phasen zum Termin.',
+      title: 'Immer 5 Phasen',
+      body: 'Beide Modi führen über dieselben 5 Phasen — Begrüßung, Kontaktieren, Informieren, Argumentieren, Terminieren — Schritt für Schritt sauber zum Termin.',
     },
   ]
   const last = i === slides.length - 1
@@ -166,39 +169,81 @@ function Onboarding({ onDone }: { onDone: () => void }) {
   )
 }
 
-// ── Startbildschirm ─────────────────────────────────────────────────────────
+// ── Startbildschirm mit Modus-Auswahl ───────────────────────────────────────
 function StartScreen({
-  onStart,
+  onSimulation,
+  onCompanion,
   onReplayIntro,
 }: {
-  onStart: () => void
+  onSimulation: () => void
+  onCompanion: () => void
   onReplayIntro: () => void
 }) {
   return (
     <section className="screen start">
       <div className="brand-row">
-        <FlatpayMark size={40} framed />
+        <FlatpayMark size={36} framed />
         <span className="brand-word">flatpay</span>
-      </div>
-
-      <div className="start-center">
-        <FlatpayMascot size={132} />
-        <h1 className="start-title">Bereit für dein Gespräch?</h1>
-        <p className="start-sub">
-          Ein zufälliger Kunde, ein zufälliger Anbieter, 5 Phasen. Mal sehen, wie
-          souverän du zum Termin führst.
-        </p>
-      </div>
-
-      <div className="dock start-bottom">
-        <button className="btn btn-primary" onClick={onStart}>
-          Gespräch starten
-        </button>
-        <button className="btn btn-ghost" onClick={onReplayIntro}>
+        <button className="brand-link" onClick={onReplayIntro}>
           So funktioniert's
         </button>
       </div>
+
+      <div className="start-center">
+        <FlatpayMascot size={104} />
+        <h1 className="start-title">Wähle deinen Modus</h1>
+      </div>
+
+      <div className="mode-list">
+        <button className="mode-card" onClick={onSimulation}>
+          <span className="mode-head">
+            <ModeIcon kind="sim" />
+            <span className="mode-name">Simulation</span>
+          </span>
+          <span className="mode-desc">
+            Komplettes Gespräch frei durchspielen und üben – zufälliger Kunde,
+            zufälliger Anbieter, 5 Phasen.
+          </span>
+        </button>
+
+        <button className="mode-card" onClick={onCompanion}>
+          <span className="mode-head">
+            <ModeIcon kind="live" />
+            <span className="mode-name">Begleitmodus</span>
+          </span>
+          <span className="mode-desc">
+            Live-Unterstützung beim echten Anruf – tippe dich Karte für Karte
+            durch und passe deine Sätze jederzeit an.
+          </span>
+        </button>
+      </div>
     </section>
+  )
+}
+
+function ModeIcon({ kind }: { kind: 'sim' | 'live' }) {
+  return (
+    <span className="mode-icon" aria-hidden>
+      {kind === 'sim' ? (
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
+          <path
+            d="M8 5v14l11-7L8 5Z"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ) : (
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
+          <path
+            d="M5 4h4l1.5 4-2 1.5a12 12 0 0 0 6 6l1.5-2 4 1.5v4a2 2 0 0 1-2.2 2A17 17 0 0 1 3 6.2 2 2 0 0 1 5 4Z"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinejoin="round"
+          />
+        </svg>
+      )}
+    </span>
   )
 }
 

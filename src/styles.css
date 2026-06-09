@@ -782,6 +782,226 @@ button {
   font-weight: 700;
   letter-spacing: -0.01em;
 }
+/* ── Startbildschirm · Modus-Auswahl ─────────────────────────────────────── */
+.brand-link {
+  margin-left: auto;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-3);
+  padding: 6px 4px;
+}
+.start-center .fp-mascot {
+  margin-bottom: 22px;
+}
+.mode-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.mode-card {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 20px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.07),
+    rgba(255, 255, 255, 0.025)
+  );
+  border: 1px solid var(--border);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  transition: transform 0.15s var(--ease), background 0.2s var(--ease);
+}
+.mode-card:active {
+  transform: scale(0.985);
+  background: rgba(255, 255, 255, 0.09);
+}
+.mode-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.mode-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+.mode-name {
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.mode-desc {
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--text-2);
+}
+
+/* ── Begleitmodus ────────────────────────────────────────────────────────── */
+.companion {
+  position: relative;
+}
+.companion-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-bottom: 96px;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Sag-Schritt */
+.say-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: rise 0.4s var(--ease) both;
+}
+.say-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.say-card {
+  padding: 22px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.13),
+    rgba(255, 255, 255, 0.04)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(38px) saturate(190%);
+  -webkit-backdrop-filter: blur(38px) saturate(190%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 0 0 0.5px rgba(255, 255, 255, 0.08),
+    0 18px 50px rgba(0, 0, 0, 0.5);
+}
+.say-text {
+  font-size: 20px;
+  line-height: 1.5;
+  color: var(--text);
+}
+.say-edit {
+  width: 100%;
+  padding: 18px;
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-strong);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 18px;
+  line-height: 1.5;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.2s var(--ease);
+}
+.say-edit:focus {
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Verzweigung · Optionskarten */
+.opt-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: rise 0.4s var(--ease) both;
+}
+.opt-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+  padding: 18px 18px;
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  font-size: 17px;
+  color: var(--text);
+  transition: transform 0.14s var(--ease), background 0.2s var(--ease),
+    border-color 0.2s var(--ease);
+}
+.opt-card:active {
+  transform: scale(0.98);
+  background: var(--surface-3);
+  border-color: var(--border-strong);
+}
+.opt-text {
+  flex: 1;
+}
+.opt-arrow {
+  flex-shrink: 0;
+  color: var(--text-3);
+}
+.opt-hint {
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-3);
+  margin-top: 4px;
+  padding: 4px 0 8px;
+}
+
+/* Liquid-Glass-Dock (scroll-abhängig ein-/ausblendbar) */
+.companion-dock {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+  padding: 12px;
+  border-radius: 30px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.14),
+    rgba(255, 255, 255, 0.045)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(38px) saturate(190%);
+  -webkit-backdrop-filter: blur(38px) saturate(190%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    0 18px 50px rgba(0, 0, 0, 0.55);
+  transition: transform 0.35s var(--ease), opacity 0.35s var(--ease);
+}
+.companion-dock.is-hidden {
+  transform: translateY(170%);
+  opacity: 0;
+  pointer-events: none;
+}
+.companion-dock .btn {
+  flex: 1;
+}
+.edit-btn {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-strong);
+  color: var(--text);
+  transition: transform 0.15s var(--ease), background 0.2s var(--ease);
+}
+.edit-btn:active {
+  transform: scale(0.94);
+  background: rgba(255, 255, 255, 0.14);
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.001ms !important;
