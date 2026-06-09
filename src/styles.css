@@ -192,14 +192,15 @@ button {
   justify-content: flex-start;
   text-align: center;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 .auth-center {
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* oben ausrichten, damit bei offener Tastatur Titel + PIN sichtbar bleiben */
-  padding: clamp(20px, 8vh, 80px) 0 32px;
-  margin: auto 0;
+  /* Inhalt fest im oberen Drittel + großzügiges unteres Padding, damit die
+     PIN bei offener Tastatur immer sichtbar bzw. erscrollbar bleibt. */
+  padding: clamp(36px, 12vh, 120px) 0 320px;
 }
 .auth-center .fp-mascot,
 .auth-center > svg {
