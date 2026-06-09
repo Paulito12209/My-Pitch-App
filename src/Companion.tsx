@@ -87,17 +87,6 @@ export function Companion({ onQuit }: { onQuit: () => void }) {
   return (
     <section className="screen companion">
       <header className="topbar">
-        <span className="topbar-step">Phase {phase}/5</span>
-        <div className="progress">
-          {PHASES.map((_, i) => {
-            const frac = i + 1 < phase ? 1 : i + 1 === phase ? 0.5 : 0
-            return (
-              <span key={i} className={`seg ${i + 1 === phase ? 'seg-active' : ''}`}>
-                <span className="seg-fill" style={{ width: `${frac * 100}%` }} />
-              </span>
-            )
-          })}
-        </div>
         <button className="iconbtn iconbtn-back" aria-label="Zurück" onClick={back}>
           <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
             <path
@@ -109,9 +98,30 @@ export function Companion({ onQuit }: { onQuit: () => void }) {
             />
           </svg>
         </button>
+        <div className="progress">
+          {PHASES.map((_, i) => {
+            const frac = i + 1 < phase ? 1 : i + 1 === phase ? 0.5 : 0
+            return (
+              <span key={i} className={`seg ${i + 1 === phase ? 'seg-active' : ''}`}>
+                <span className="seg-fill" style={{ width: `${frac * 100}%` }} />
+              </span>
+            )
+          })}
+        </div>
+        <button className="iconbtn" aria-label="Abbrechen" onClick={onQuit}>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
+            <path
+              d="M6 6l12 12M18 6 6 18"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+          </svg>
+        </button>
       </header>
 
       <div className="phase-label">
+        <span className="topbar-step">Phase {phase}/5</span>
         <span className="phase-name">{PHASES[phase - 1]}</span>
         {node.title !== PHASES[phase - 1] && (
           <span className="phase-sub">{node.title}</span>
