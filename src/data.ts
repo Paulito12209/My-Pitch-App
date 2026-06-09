@@ -18,6 +18,8 @@
 //                      den Vor-Ort-Termin lenken
 // ─────────────────────────────────────────────────────────────────────────
 
+import { nameOrFallback } from './profile'
+
 export type Status = 'ja' | 'jaaber' | 'nein'
 export type CustomerType = 'inhaber' | 'mitarbeiter'
 
@@ -89,8 +91,7 @@ function buildBegruessung(type: CustomerType): Turn[] {
           speaker: 'Inhaber',
           customer: 'Ja, der bin ich. Worum geht’s denn?',
           status: 'nein',
-          response:
-            'Mein Name ist Paul von Flatpay – wir helfen Läden, bei der Kartenzahlung Gebühren zu sparen. 😊 Aber sagen Sie kurz: kann man bei Ihnen denn mit Karte zahlen?',
+          response: `Mein Name ist ${nameOrFallback()} – wir helfen Läden, bei der Kartenzahlung Gebühren zu sparen. 😊 Aber sagen Sie kurz: kann man bei Ihnen denn mit Karte zahlen?`,
           hint: 'Wenn direkt gefragt: kurz & ehrlich vorstellen (Name + Nutzen) – aber NICHT gleich den ganzen Termin-Pitch.',
         },
       ]),
@@ -207,8 +208,8 @@ function buildArgumentieren(provider: string, pain: string): Turn[] {
     ]),
     status: 'jaaber',
     response:
-      'Klasse! 😊 Am besten rechnet euch das mein Kollege einfach mal in Ruhe direkt vor Ort durch – komplett kostenlos und unverbindlich.',
-    hint: 'Sanft zum Vor-Ort-Termin überleiten – KEINE Ja/Nein-Frage, die ein Nein einlädt.',
+      'Klasse! 😊 Und genau da gäb’s eine faire Alternative – ganz ohne Gerätemiete und mit einem glatten Satz auf jede Karte. Das lässt sich für euch sogar mal in Ruhe durchrechnen, kostenlos und unverbindlich.',
+    hint: 'Nutzen platzieren, sanft zur Überleitung – noch KEinen Kollegen/Termin nennen, das kommt in Phase 5.',
   }
 
   return [summarize, bridge]
@@ -220,8 +221,7 @@ function buildTerminieren(): Turn[] {
     speaker: 'Inhaber',
     customer: pick(['Und wie läuft das jetzt genau?', 'Okay, und was heißt das konkret?']),
     status: 'ja',
-    response:
-      'Ja, ich bin Paul von Flatpay. 😊 Mein Kollege wäre am Montag um 15 Uhr bei euch in [Ort in der Nähe] und wollte kurz vorbeikommen, um euch einen kostenlosen und unverbindlichen Preisvergleich anzubieten. Seid ihr Montag im Geschäft?',
+    response: `Ja, ich bin ${nameOrFallback()} von Flatpay. 😊 Ein Kollege von mir wäre am Montag um 15 Uhr bei euch in [Ort in der Nähe] und würde euch in 10 Minuten einen kostenlosen, unverbindlichen Preisvergleich zeigen. Seid ihr Montag im Geschäft?`,
     hint: 'JETZT erst Flatpay nennen – gleich mit dem konkreten Terminvorschlag.',
   }
 

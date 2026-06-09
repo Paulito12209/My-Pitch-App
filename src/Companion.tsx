@@ -6,6 +6,7 @@ import {
   type BranchOption,
   type ProviderCtx,
 } from './companion'
+import { getUserName } from './profile'
 
 const PHASES = ['Begrüßung', 'Kontaktieren', 'Informieren', 'Argumentieren', 'Terminieren']
 const EDITS_KEY = 'fp-companion-edits-v1'
@@ -41,7 +42,7 @@ export function Companion({ onQuit }: { onQuit: () => void }) {
   }, [nodeId])
 
   const sayText = (id: string, raw: string) =>
-    edits[id] ?? fillTemplate(raw, provider)
+    edits[id] ?? fillTemplate(raw, provider, getUserName())
 
   const go = useCallback(
     (to: string, opt?: BranchOption) => {

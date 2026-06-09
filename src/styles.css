@@ -308,6 +308,28 @@ button {
   color: var(--text-2);
   max-width: 320px;
 }
+.onb-input {
+  margin-top: 26px;
+  width: min(320px, 80%);
+  padding: 16px 18px;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-strong);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 18px;
+  text-align: center;
+  outline: none;
+  transition: border-color 0.2s var(--ease), background 0.2s var(--ease);
+}
+.onb-input:focus {
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.1);
+}
+.btn:disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
 .onb-bottom {
   position: absolute;
   bottom: 0;

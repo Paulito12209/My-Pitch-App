@@ -1,15 +1,19 @@
 // ─────────────────────────────────────────────────────────────────────────
 //  Begleitmodus · Live-Gesprächsbaum
 //
-//  Abgestimmt aufs Trainer-Feedback:
-//    • Locker & positiv, NICHT zu früh „von Flatpay" – der Name + Termin
-//      kommen erst in Phase 5.
-//    • Natürlicher Einstieg: Begrüßung → „mit Karte zahlen?" → „welcher
-//      Anbieter?" → Pain annehmend platzieren → Termin.
-//    • Wenige Ja/Nein-Fragen, die ein Nein einladen – lieber annehmende
-//      Aussagen, die führen.
-//    • Kein Telefon-Termin (machen wir nicht) → charmant auf Vor Ort lenken.
-//    • „Per Mail"-Einwand → ebenfalls charmant auf den persönlichen Termin.
+//  Leitlinie (Booker-Playbook):
+//    Die 3 Pflichtaufgaben MÜSSEN beantwortet werden, sonst kein Termin:
+//      1) Bietet ihr Kartenzahlung an?
+//      2) Werden die Beträge manuell ins Kartenlesegerät getippt?
+//      3) Wie hoch ist der monatliche Kartenumsatz?
+//    Danach den Termin platzieren.
+//
+//    • Wir FÜHREN mit Fragen – kurze, geschlossene Rückfragen, die das
+//      Gegenüber nicht zum Grübeln einladen. Skeptische / abgeneigte
+//      Reaktionen fangen wir charmant ab und lenken sofort zurück in den
+//      Trichter (Pflichtfrage stellen statt rechtfertigen).
+//    • Locker & positiv; der eigene Name + „Flatpay" + der Termin kommen
+//      erst in Phase 5.  Der eigene Name wird über {name} eingesetzt.
 //
 //  Knotentypen:  say  = Satz, den DU sagst (editierbar)
 //                branch = Reaktionen des Gegenübers (antippbar, nach
@@ -83,14 +87,8 @@ export const COMPANION_TREE: Record<string, CompanionNode> = {
       { label: 'Wer sind Sie denn / welche Firma?', to: 'say_who' },
       { label: 'Ich bin nur Mitarbeiter:in.', to: 'say_employee' },
       { label: 'Der Chef ist gerade nicht da.', to: 'say_notthere' },
+      { label: 'Kein Interesse, danke.', to: 'say_obj_early' },
     ],
-  },
-  say_who: {
-    kind: 'say',
-    phase: 1,
-    title: 'Kurz vorstellen (wenn gefragt)',
-    text: 'Mein Name ist Paul von Flatpay – wir helfen Läden, bei der Kartenzahlung Gebühren zu sparen. 😊 Aber sagen Sie kurz: kann man bei Ihnen mit Karte zahlen?',
-    next: 'b_card',
   },
   say_card_q: {
     kind: 'say',
@@ -104,6 +102,21 @@ export const COMPANION_TREE: Record<string, CompanionNode> = {
     phase: 1,
     title: 'Charmant ausweichen',
     text: 'Ach, ganz unkompliziert – es geht nur kurz um Ihre Kartenzahlung im Laden. 😊 Sagen Sie, kann man bei Ihnen mit Karte zahlen?',
+    next: 'b_card',
+  },
+  say_who: {
+    kind: 'say',
+    phase: 1,
+    title: 'Kurz vorstellen (wenn gefragt)',
+    text: 'Mein Name ist {name} – wir helfen Läden, bei der Kartenzahlung Gebühren zu sparen. 😊 Aber sagen Sie kurz: kann man bei Ihnen mit Karte zahlen?',
+    next: 'b_card',
+  },
+  // Früher Abwimmel-Versuch → nicht rechtfertigen, sofort mit Pflichtfrage führen
+  say_obj_early: {
+    kind: 'say',
+    phase: 1,
+    title: 'Brush-off auffangen (Frage stellen)',
+    text: 'Total verständlich – und ich will Ihnen auch gar nichts verkaufen. 😊 Nur eine kurze Frage, dann sind Sie mich auch schon wieder los: Kann man bei Ihnen mit Karte zahlen?',
     next: 'b_card',
   },
   say_employee: {
@@ -137,7 +150,7 @@ export const COMPANION_TREE: Record<string, CompanionNode> = {
     next: null,
   },
 
-  // ── Phase 2 · Kontaktieren ───────────────────────────────────────────────
+  // ── Phase 2 · Kontaktieren (Pflichtfrage 1: Karte? + Anbieter) ───────────
   b_card: {
     kind: 'branch',
     phase: 2,
@@ -145,9 +158,16 @@ export const COMPANION_TREE: Record<string, CompanionNode> = {
     options: [
       { label: 'Ja, klar.', to: 'say_provider_q' },
       { label: 'Nur EC, keine Kreditkarte.', to: 'say_provider_q' },
-      { label: 'Moment – wer sind Sie überhaupt?', to: 'say_who' },
+      { label: 'Wieso fragen Sie das?', to: 'say_card_why' },
       { label: 'Nein, nur Bargeld.', to: 'say_nocard' },
     ],
+  },
+  say_card_why: {
+    kind: 'say',
+    phase: 2,
+    title: 'Kurz erklären, dann weiterfragen',
+    text: 'Ganz transparent: Ich schau für Läden nur kurz, ob sie bei der Kartenzahlung zu viel zahlen – das ist meist so. 😊 Deshalb: Kann man bei Ihnen mit Karte zahlen?',
+    next: 'b_card',
   },
   say_nocard: {
     kind: 'say',
@@ -202,7 +222,7 @@ export const COMPANION_TREE: Record<string, CompanionNode> = {
     kind: 'say',
     phase: 2,
     title: 'Kurz vorstellen (wenn gefragt)',
-    text: 'Mein Name ist Paul von Flatpay – wir vergleichen kurz eure Kartenkonditionen, damit ihr nicht zu viel zahlt. 😊 Bei welchem Anbieter seid ihr denn gerade?',
+    text: 'Mein Name ist {name} – wir vergleichen kurz eure Kartenkonditionen, damit ihr nicht zu viel zahlt. 😊 Bei welchem Anbieter seid ihr denn gerade?',
     next: 'b_provider',
   },
 
@@ -229,8 +249,8 @@ export const COMPANION_TREE: Record<string, CompanionNode> = {
     kind: 'say',
     phase: 3,
     title: 'Diskret bleiben',
-    text: 'Alles gut, das müsst ihr mir gar nicht verraten! 😊 Mir geht’s nur drum, dass ihr unterm Strich nicht zu viel zahlt – Gerätemiete plus eine Gebühr auf jede Karte summiert sich nämlich schnell. Da kommt bestimmt einiges zusammen, oder?',
-    next: 'b_pain',
+    text: 'Alles gut, das müsst ihr mir gar nicht verraten! 😊 Mir geht’s nur drum, dass ihr unterm Strich nicht zu viel zahlt. Sagt mir einfach das hier:',
+    next: 'say_manual',
   },
   // Generische Pain-Platzierung ohne konkreten Anbieter
   say_pain_generic: {
@@ -241,7 +261,7 @@ export const COMPANION_TREE: Record<string, CompanionNode> = {
     next: 'b_pain',
   },
 
-  // ── Phase 3 · Informieren (Pain annehmend platzieren) ────────────────────
+  // ── Phase 3 · Informieren (Pain platzieren + Pflichtfragen 2 & 3) ────────
   say_pain_assume: {
     kind: 'say',
     phase: 3,
@@ -257,13 +277,22 @@ export const COMPANION_TREE: Record<string, CompanionNode> = {
       { label: 'Ja, kann gut sein.', to: 'say_manual' },
       { label: 'Keine Ahnung ehrlich gesagt.', to: 'say_manual' },
       { label: 'Nein, eigentlich nicht.', to: 'say_manual' },
+      { label: 'Worauf wollen Sie hinaus?', to: 'say_pain_why' },
     ],
   },
+  say_pain_why: {
+    kind: 'say',
+    phase: 3,
+    title: 'Kurz einordnen, dann weiterführen',
+    text: 'Ganz kurz auf den Punkt: Die meisten zahlen für jede Karte unterschiedlich – und das lässt sich glätten. 😊 Damit ich’s genau sagen kann, brauch ich nur zwei Infos:',
+    next: 'say_manual',
+  },
+  // Pflichtfrage 2 · manuelle Erfassung — neutral gefragt (passt aus jedem Pfad)
   say_manual: {
     kind: 'say',
     phase: 3,
-    title: 'Erfassung abklopfen',
-    text: 'Dachte ich mir. 😊 Und die Beträge tippt ihr von Hand ins Gerät ein, richtig?',
+    title: 'Pflichtfrage: manuelle Erfassung',
+    text: 'Eine kurze Sache: Tippt ihr die Beträge von Hand ins Kartengerät ein – oder läuft das automatisch über die Kasse?',
     next: 'b_manual',
   },
   b_manual: {
@@ -271,15 +300,24 @@ export const COMPANION_TREE: Record<string, CompanionNode> = {
     phase: 3,
     title: 'Wie reagiert das Gegenüber?',
     options: [
-      { label: 'Ja, von Hand.', to: 'say_revenue' },
-      { label: 'Nein, über die Kasse.', to: 'say_revenue' },
+      { label: 'Von Hand ins Gerät.', to: 'say_revenue' },
+      { label: 'Automatisch über die Kasse.', to: 'say_revenue' },
+      { label: 'Wieso fragen Sie das alles?', to: 'say_manual_why' },
     ],
   },
+  say_manual_why: {
+    kind: 'say',
+    phase: 3,
+    title: 'Knapp begründen, dann letzte Frage',
+    text: 'Weil genau das den Preis macht – je nachdem rechne ich euch unterschiedlich. 😊 Letzte Frage, dann hab ich alles:',
+    next: 'say_revenue',
+  },
+  // Pflichtfrage 3 · Monatsumsatz
   say_revenue: {
     kind: 'say',
     phase: 3,
-    title: 'Umsatz (grob)',
-    text: 'Perfekt. Und wie viel macht ihr so im Monat über Karte – ganz grob?',
+    title: 'Pflichtfrage: Monatsumsatz',
+    text: 'Und wie viel macht ihr so im Monat über Karte – ganz grob über den Daumen?',
     next: 'b_revenue',
   },
   b_revenue: {
@@ -290,32 +328,65 @@ export const COMPANION_TREE: Record<string, CompanionNode> = {
       { label: 'Ca. 8.000 € im Monat', to: 'say_arg_summary' },
       { label: 'Ca. 15.000 € im Monat', to: 'say_arg_summary' },
       { label: 'Ca. 30.000 € im Monat', to: 'say_arg_summary' },
-      { label: 'Sag ich lieber nicht.', to: 'say_arg_summary' },
+      { label: 'Sag ich lieber nicht.', to: 'say_arg_summary_noamount' },
     ],
   },
 
-  // ── Phase 4 · Argumentieren ──────────────────────────────────────────────
+  // ── Phase 4 · Argumentieren (Zusammenfassen + Nutzen + Interesse-Check) ──
   say_arg_summary: {
     kind: 'say',
     phase: 4,
     title: 'Zusammenfassen (Ja-Kette)',
-    text: 'Klasse, danke! 😊 Dann fass ich kurz zusammen: Ihr tippt von Hand ein und zahlt bei {provider} {pain}. Bei dem Umsatz zahlt man da ordentlich drauf – und genau da gäb’s eine Möglichkeit ganz ohne Gerätemiete und mit einem glatten, fairen Satz.',
+    text: 'Klasse, danke! 😊 Dann fass ich kurz zusammen: Ihr rechnet aktuell über euer Gerät ab und zahlt bei {provider} {pain}. Bei dem Umsatz kommt da Monat für Monat ordentlich was zusammen.',
+    next: 'say_arg_value',
+  },
+  // Umsatz nicht genannt → NICHT so tun, als wüssten wir ihn
+  say_arg_summary_noamount: {
+    kind: 'say',
+    phase: 4,
+    title: 'Zusammenfassen (ohne Betrag)',
+    text: 'Kein Thema, das müsst ihr mir nicht verraten! 😊 Unterm Strich ist es fast immer dasselbe: Bei {provider} zahlt man {pain} – und egal wie hoch der Umsatz ist, da läppert sich jeden Monat einiges zusammen.',
     next: 'say_arg_value',
   },
   say_arg_value: {
     kind: 'say',
     phase: 4,
-    title: 'Nutzen + Überleitung',
-    text: 'Am besten rechnet euch das mein Kollege einfach mal in Ruhe direkt vor Ort durch – komplett kostenlos und unverbindlich. 😊',
+    title: 'Nutzen + Interesse-Check',
+    text: 'Und genau da gäb’s eine faire Alternative: ganz ohne Gerätemiete und mit einem glatten Satz auf jede Karte. 😊 Wär das grundsätzlich interessant für euch?',
+    next: 'b_interest',
+  },
+  b_interest: {
+    kind: 'branch',
+    phase: 4,
+    title: 'Wie reagiert das Gegenüber?',
+    options: [
+      { label: 'Ja, klingt interessant.', to: 'say_termin_intro' },
+      { label: 'Erzählen Sie mal kurz.', to: 'say_termin_intro' },
+      { label: 'Klingt nach Aufwand / Umstellung.', to: 'say_obj_effort' },
+      { label: 'Wechseln wollen wir eigentlich nicht.', to: 'say_obj_nowechsel' },
+    ],
+  },
+  say_obj_effort: {
+    kind: 'say',
+    phase: 4,
+    title: 'Aufwand entkräften',
+    text: 'Verstehe – aber genau das ist der Punkt: Umstellen ist quasi nichts, das macht der Kollege komplett für euch. 😊 Ihr seht einfach nur, was ihr spart. Soll ich euch das mal unverbindlich zeigen lassen?',
+    next: 'say_termin_intro',
+  },
+  say_obj_nowechsel: {
+    kind: 'say',
+    phase: 4,
+    title: 'Kein Wechselwunsch auffangen',
+    text: 'Müsst ihr auch gar nicht – ihr schaut euch einfach nur an, was möglich wäre. 😊 Wenn’s sich nicht lohnt, lasst ihr’s; wenn doch, habt ihr bares Geld gespart. Fair, oder?',
     next: 'say_termin_intro',
   },
 
-  // ── Phase 5 · Terminieren (jetzt Flatpay + Termin) ───────────────────────
+  // ── Phase 5 · Terminieren (jetzt Name + Flatpay + konkreter Termin) ──────
   say_termin_intro: {
     kind: 'say',
     phase: 5,
-    title: 'Flatpay + Terminvorschlag',
-    text: 'Ich bin übrigens Paul von Flatpay. 😊 Mein Kollege wäre am Montag um 15 Uhr bei euch in [Ort in der Nähe] und wollte kurz vorbeikommen, um euch einen kostenlosen, unverbindlichen Preisvergleich zu zeigen. Seid ihr Montag im Geschäft?',
+    title: 'Vorstellen + Terminvorschlag',
+    text: 'Ich bin übrigens {name} von Flatpay. 😊 Am besten zeigt euch ein Kollege von mir das in 10 Minuten direkt vor Ort – komplett kostenlos und unverbindlich. Sagen wir Montag um 15 Uhr: Seid ihr da im Geschäft?',
     next: 'b_termin',
   },
   b_termin: {
@@ -375,8 +446,13 @@ export const COMPANION_TREE: Record<string, CompanionNode> = {
   },
 }
 
-export function fillTemplate(text: string, ctx: ProviderCtx | null): string {
+export function fillTemplate(
+  text: string,
+  ctx: ProviderCtx | null,
+  name?: string,
+): string {
   return text
     .replace(/\{provider\}/g, ctx ? ctx.name : 'eurem aktuellen Anbieter')
     .replace(/\{pain\}/g, ctx ? ctx.pain : 'wahrscheinlich mehr als nötig')
+    .replace(/\{name\}/g, name && name.trim() ? name.trim() : '[dein Name]')
 }

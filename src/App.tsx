@@ -10,6 +10,7 @@ import {
 } from './data'
 import { FlatpayMark, FlatpayMascot } from './FlatpayMark'
 import { Companion } from './Companion'
+import { getUserName, setUserName } from './profile'
 
 type Screen = 'auth' | 'onboarding' | 'start' | 'play' | 'celebrate' | 'done' | 'companion'
 
@@ -188,6 +189,7 @@ function AuthGate({ onSuccess }: { onSuccess: () => void }) {
 // ── Mini-Onboarding (Schwarz/Weiß, Flatpay) ─────────────────────────────────
 function Onboarding({ onDone }: { onDone: () => void }) {
   const [i, setI] = useState(0)
+  const [name, setName] = useState(getUserName())
   const slides = [
     {
       art: <FlatpayMark size={108} framed />,
@@ -204,18 +206,54 @@ function Onboarding({ onDone }: { onDone: () => void }) {
       title: 'Immer 5 Phasen',
       body: 'Beide Modi führen über dieselben 5 Phasen — Begrüßung, Kontaktieren, Informieren, Argumentieren, Terminieren — Schritt für Schritt sauber zum Termin.',
     },
+    { kind: 'name' as const },
   ]
   const last = i === slides.length - 1
   const s = slides[i]
+  const isNameStep = 'kind' in s && s.kind === 'name'
+
+  const finish = () => {
+    setUserName(name)
+    onDone()
+  }
+  const next = () => (last ? finish() : setI((v) => v + 1))
 
   return (
     <section className="screen onboarding">
-      <button className="skip" onClick={onDone}>
+      <button className="skip" onClick={finish}>
         Überspringen
       </button>
-      <div className="onb-art">{s.art}</div>
-      <h1 className="onb-title">{s.title}</h1>
-      <p className="onb-body">{s.body}</p>
+
+      {isNameStep ? (
+        <>
+          <div className="onb-art">
+            <FlatpayMascot size={120} />
+          </div>
+          <h1 className="onb-title">Wie heißt du?</h1>
+          <p className="onb-body">
+            Dein Name wird in den Gesprächs-Skripten eingesetzt – so klingt jeder
+            Satz nach dir.
+          </p>
+          <input
+            className="onb-input"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Dein Vorname"
+            autoFocus
+            maxLength={24}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && name.trim()) finish()
+            }}
+            aria-label="Dein Name"
+          />
+        </>
+      ) : (
+        <>
+          <div className="onb-art">{s.art}</div>
+          <h1 className="onb-title">{s.title}</h1>
+          <p className="onb-body">{s.body}</p>
+        </>
+      )}
 
       <div className="onb-bottom">
         <div className="dots">
@@ -226,7 +264,8 @@ function Onboarding({ onDone }: { onDone: () => void }) {
         <div className="dock">
           <button
             className="btn btn-primary"
-            onClick={() => (last ? onDone() : setI((v) => v + 1))}
+            onClick={next}
+            disabled={isNameStep && !name.trim()}
           >
             {last ? "Los geht's" : 'Weiter'}
           </button>
