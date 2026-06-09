@@ -22,18 +22,18 @@ export interface ProviderCtx {
 }
 
 export const COMPANION_PROVIDERS: ProviderCtx[] = [
-  { name: 'SumUp', pain: 'die Geräte extra und kommt beim Support meist nur an einen Chatbot' },
-  { name: 'Sparkasse', pain: 'gestaffelte Sätze je Kartentyp – und Support nur tagsüber' },
+  { name: 'SumUp', pain: 'die Geräte extra und für jede Zahlung eine prozentuale Gebühr' },
+  { name: 'Sparkasse', pain: 'gestaffelte Sätze je Kartentyp und obendrauf noch Gerätemiete' },
   { name: 'Payone', pain: 'noch Gerätemiete plus gestaffelte Gebühren auf jede Karte' },
   { name: 'Nexi', pain: 'noch Gerätemiete plus separate Gebühren auf Kredit- und Auslandskarten' },
   { name: 'TeleCash', pain: 'unterschiedliche Sätze je Karte plus extra Kosten pro Transaktion' },
-  { name: 'Vert', pain: 'unterschiedlich auf EC-, Kredit- und Auslandskarten – und das Geld kommt nur wöchentlich' },
+  { name: 'Vert', pain: 'unterschiedliche Sätze auf EC-, Kredit- und Auslandskarten plus Gerätemiete' },
 ]
 
 // Wenn jemand den Anbieter nicht kennt → meist Hausbank
 const HAUSBANK: ProviderCtx = {
   name: 'der Hausbank',
-  pain: 'meist noch Gerätemiete und auf jede Karte eine andere Gebühr',
+  pain: 'noch Gerätemiete und auf jede Karte eine andere Gebühr',
 }
 
 export interface SayNode {
@@ -80,9 +80,17 @@ export const COMPANION_TREE: Record<string, CompanionNode> = {
     options: [
       { label: 'Ja, am Apparat.', to: 'say_card_q' },
       { label: "Worum geht's denn?", to: 'say_worum' },
+      { label: 'Wer sind Sie denn / welche Firma?', to: 'say_who' },
       { label: 'Ich bin nur Mitarbeiter:in.', to: 'say_employee' },
       { label: 'Der Chef ist gerade nicht da.', to: 'say_notthere' },
     ],
+  },
+  say_who: {
+    kind: 'say',
+    phase: 1,
+    title: 'Kurz vorstellen (wenn gefragt)',
+    text: 'Mein Name ist Paul von Flatpay – wir helfen Läden, bei der Kartenzahlung Gebühren zu sparen. 😊 Aber sagen Sie kurz: kann man bei Ihnen mit Karte zahlen?',
+    next: 'b_card',
   },
   say_card_q: {
     kind: 'say',
@@ -137,6 +145,7 @@ export const COMPANION_TREE: Record<string, CompanionNode> = {
     options: [
       { label: 'Ja, klar.', to: 'say_provider_q' },
       { label: 'Nur EC, keine Kreditkarte.', to: 'say_provider_q' },
+      { label: 'Moment – wer sind Sie überhaupt?', to: 'say_who' },
       { label: 'Nein, nur Bargeld.', to: 'say_nocard' },
     ],
   },
@@ -178,6 +187,7 @@ export const COMPANION_TREE: Record<string, CompanionNode> = {
       ...providerOptions,
       { label: 'Weiß ich gar nicht genau.', to: 'say_pain_assume', provider: HAUSBANK },
       { label: 'Wieso fragen Sie das?', to: 'say_why_provider' },
+      { label: 'Wer sind Sie noch mal?', to: 'say_who_provider' },
     ],
   },
   say_why_provider: {
@@ -185,6 +195,13 @@ export const COMPANION_TREE: Record<string, CompanionNode> = {
     phase: 2,
     title: 'Transparent bleiben',
     text: 'Ganz transparent: Ich vergleich für euch nur kurz die Konditionen – viele zahlen nämlich mehr als nötig. 😊 Bei welchem Anbieter seid ihr denn gerade?',
+    next: 'b_provider',
+  },
+  say_who_provider: {
+    kind: 'say',
+    phase: 2,
+    title: 'Kurz vorstellen (wenn gefragt)',
+    text: 'Mein Name ist Paul von Flatpay – wir vergleichen kurz eure Kartenkonditionen, damit ihr nicht zu viel zahlt. 😊 Bei welchem Anbieter seid ihr denn gerade?',
     next: 'b_provider',
   },
 

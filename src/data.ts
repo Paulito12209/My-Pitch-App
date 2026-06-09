@@ -65,10 +65,10 @@ function pick<T>(arr: T[]): T {
 // ── Anbieter inkl. Pain Point (passt in „… zahlt bei {name} {pain}") ────────
 const PROVIDERS: { name: string; pain: string }[] = [
   { name: 'Payone', pain: 'noch Gerätemiete plus gestaffelte Gebühren auf jede Karte' },
-  { name: 'der Sparkasse', pain: 'gestaffelte Sätze je Kartentyp – und Support gibt’s nur tagsüber' },
-  { name: 'SumUp', pain: 'die Geräte extra und kommt beim Support meist nur an einen Chatbot' },
+  { name: 'Sparkasse', pain: 'gestaffelte Sätze je Kartentyp und obendrauf noch Gerätemiete' },
+  { name: 'SumUp', pain: 'die Geräte extra und für jede Zahlung eine prozentuale Gebühr' },
   { name: 'TeleCash', pain: 'unterschiedliche Sätze je Karte plus extra Kosten pro Transaktion' },
-  { name: 'Vert', pain: 'unterschiedlich auf EC-, Kredit- und Auslandskarten – und das Geld kommt nur wöchentlich' },
+  { name: 'Vert', pain: 'unterschiedliche Sätze auf EC-, Kredit- und Auslandskarten plus Gerätemiete' },
   { name: 'Nexi', pain: 'noch Gerätemiete plus separate Gebühren auf Kredit- und Auslandskarten' },
 ]
 
@@ -90,8 +90,8 @@ function buildBegruessung(type: CustomerType): Turn[] {
           customer: 'Ja, der bin ich. Worum geht’s denn?',
           status: 'nein',
           response:
-            'Ach, ganz unkompliziert – es geht nur kurz um Ihre Kartenzahlung im Laden. 😊 Sagen Sie, kann man bei Ihnen denn mit Karte zahlen?',
-          hint: 'Nicht gleich Flatpay nennen – charmant ausweichen und natürlich überleiten.',
+            'Mein Name ist Paul von Flatpay – wir helfen Läden, bei der Kartenzahlung Gebühren zu sparen. 😊 Aber sagen Sie kurz: kann man bei Ihnen denn mit Karte zahlen?',
+          hint: 'Wenn direkt gefragt: kurz & ehrlich vorstellen (Name + Nutzen) – aber NICHT gleich den ganzen Termin-Pitch.',
         },
       ]),
     ]
@@ -147,7 +147,7 @@ function buildKontaktieren(provider: string): Turn[] {
 
   const named: Turn = {
     speaker: 'Inhaber',
-    customer: `Aktuell läuft das über ${provider}.`,
+    customer: `Aktuell sind wir bei ${provider}.`,
     status: 'ja',
     response: `Ah, ${provider} – kenn ich gut! 😊 Dann zahlt ihr da bestimmt noch Gerätemiete und auf jede Karte unterschiedliche Gebühren, oder?`,
     hint: 'Anbieter aufgreifen und mit einer Annahme den Pain platzieren – kein offenes Ja/Nein-Risiko.',
