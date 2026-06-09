@@ -452,6 +452,10 @@ button {
   font-weight: 700;
   letter-spacing: -0.02em;
 }
+.phase-label-center {
+  align-items: center;
+  text-align: center;
+}
 .phase-sub {
   font-size: 13px;
   font-weight: 600;
@@ -947,7 +951,8 @@ button {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding-bottom: 96px;
+  /* genug Abstand, damit Karten nie unter dem unteren Button verschwinden */
+  padding-bottom: 108px;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -1078,19 +1083,21 @@ button {
 .companion-dock .btn {
   flex: 1;
 }
-.edit-btn {
+.edit-btn,
+.dock-icon {
   flex-shrink: 0;
-  width: 56px;
+  width: 50px;
   height: 56px;
   display: grid;
   place-items: center;
-  border-radius: var(--radius-md);
+  border-radius: 18px;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid var(--border-strong);
   color: var(--text);
   transition: transform 0.15s var(--ease), background 0.2s var(--ease);
 }
-.edit-btn:active {
+.edit-btn:active,
+.dock-icon:active {
   transform: scale(0.94);
   background: rgba(255, 255, 255, 0.14);
 }

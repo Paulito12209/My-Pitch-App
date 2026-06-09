@@ -87,17 +87,7 @@ export function Companion({ onQuit }: { onQuit: () => void }) {
   return (
     <section className="screen companion">
       <header className="topbar">
-        <button className="iconbtn iconbtn-back" aria-label="Zurück" onClick={back}>
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
-            <path
-              d="M15 5l-7 7 7 7"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
+        <span className="topbar-step">Phase {phase}/5</span>
         <div className="progress">
           {PHASES.map((_, i) => {
             const frac = i + 1 < phase ? 1 : i + 1 === phase ? 0.5 : 0
@@ -108,20 +98,9 @@ export function Companion({ onQuit }: { onQuit: () => void }) {
             )
           })}
         </div>
-        <button className="iconbtn" aria-label="Abbrechen" onClick={onQuit}>
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
-            <path
-              d="M6 6l12 12M18 6 6 18"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-          </svg>
-        </button>
       </header>
 
-      <div className="phase-label">
-        <span className="topbar-step">Phase {phase}/5</span>
+      <div className="phase-label phase-label-center">
         <span className="phase-name">{PHASES[phase - 1]}</span>
         {node.title !== PHASES[phase - 1] && (
           <span className="phase-sub">{node.title}</span>
@@ -174,8 +153,29 @@ export function Companion({ onQuit }: { onQuit: () => void }) {
       </div>
 
       <div className={`companion-dock ${dockHidden ? 'is-hidden' : ''}`}>
+        <button className="dock-icon" aria-label="Zurück" onClick={back}>
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
+            <path
+              d="M15 5l-7 7 7 7"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+        <button className="dock-icon" aria-label="Abbrechen" onClick={onQuit}>
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
+            <path
+              d="M6 6l12 12M18 6 6 18"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+          </svg>
+        </button>
         {node.kind === 'say' && !editing && (
-          <button className="edit-btn" aria-label="Text bearbeiten" onClick={startEdit}>
+          <button className="dock-icon" aria-label="Text bearbeiten" onClick={startEdit}>
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
               <path
                 d="M4 20h4L18.5 9.5a2 2 0 0 0-2.83-2.83L5 17v3Z"
@@ -199,7 +199,7 @@ export function Companion({ onQuit }: { onQuit: () => void }) {
             </button>
           ) : (
             <button className="btn btn-primary" onClick={onQuit}>
-              Gespräch beenden
+              Zur Auswahl
             </button>
           )
         ) : (
@@ -207,7 +207,7 @@ export function Companion({ onQuit }: { onQuit: () => void }) {
             className="btn btn-primary"
             onClick={() => go(node.options[0].to, node.options[0])}
           >
-            Wahrscheinlichste Antwort
+            Wahrscheinlichste
           </button>
         )}
       </div>
