@@ -185,7 +185,8 @@ export const COMPANION_TREE: Record<string, CompanionNode> = {
     title: 'Welchen Anbieter nennt das Gegenüber?',
     options: [
       ...providerOptions,
-      { label: 'Weiß ich gar nicht genau.', to: 'say_pain_assume', provider: HAUSBANK },
+      { label: 'Weiß ich gar nicht genau.', to: 'say_provider_hausbank_q' },
+      { label: 'Das möchte ich nicht sagen.', to: 'say_provider_private' },
       { label: 'Wieso fragen Sie das?', to: 'say_why_provider' },
       { label: 'Wer sind Sie noch mal?', to: 'say_who_provider' },
     ],
@@ -203,6 +204,41 @@ export const COMPANION_TREE: Record<string, CompanionNode> = {
     title: 'Kurz vorstellen (wenn gefragt)',
     text: 'Mein Name ist Paul von Flatpay – wir vergleichen kurz eure Kartenkonditionen, damit ihr nicht zu viel zahlt. 😊 Bei welchem Anbieter seid ihr denn gerade?',
     next: 'b_provider',
+  },
+
+  // Anbieter unbekannt → NICHT annehmen, sondern Hausbank erfragen
+  say_provider_hausbank_q: {
+    kind: 'say',
+    phase: 2,
+    title: 'Hausbank erfragen',
+    text: 'Kein Problem! 😊 Oft läuft das einfach über die Hausbank – kann das sein, dass ihr da über die Sparkasse oder Volksbank abrechnet?',
+    next: 'b_provider_hausbank',
+  },
+  b_provider_hausbank: {
+    kind: 'branch',
+    phase: 2,
+    title: 'Wie reagiert das Gegenüber?',
+    options: [
+      { label: 'Ja, genau – über die Hausbank.', to: 'say_pain_assume', provider: HAUSBANK },
+      { label: 'Nein, glaub ich nicht.', to: 'say_pain_generic' },
+      { label: 'Weiß ich wirklich nicht.', to: 'say_pain_generic' },
+    ],
+  },
+  // Anbieter will nicht genannt werden → diskret bleiben, generisch platzieren
+  say_provider_private: {
+    kind: 'say',
+    phase: 3,
+    title: 'Diskret bleiben',
+    text: 'Alles gut, das müsst ihr mir gar nicht verraten! 😊 Mir geht’s nur drum, dass ihr unterm Strich nicht zu viel zahlt – Gerätemiete plus eine Gebühr auf jede Karte summiert sich nämlich schnell. Da kommt bestimmt einiges zusammen, oder?',
+    next: 'b_pain',
+  },
+  // Generische Pain-Platzierung ohne konkreten Anbieter
+  say_pain_generic: {
+    kind: 'say',
+    phase: 3,
+    title: 'Pain platzieren',
+    text: 'Kein Thema! 😊 Bei den meisten Geräten zahlt man Gerätemiete, Grundgebühr und pro Kartenzahlung noch extra – da kommt unterm Strich bestimmt einiges zusammen, oder?',
+    next: 'b_pain',
   },
 
   // ── Phase 3 · Informieren (Pain annehmend platzieren) ────────────────────
