@@ -27,6 +27,7 @@ export function Companion({ onQuit }: { onQuit: () => void }) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState('')
   const [dockHidden, setDockHidden] = useState(false)
+  const [confirmQuit, setConfirmQuit] = useState(false)
 
   const node = COMPANION_TREE[nodeId]
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -122,6 +123,21 @@ export function Companion({ onQuit }: { onQuit: () => void }) {
             ) : (
               <div className="say-card">
                 <p className="say-text">{sayText(nodeId, node.text)}</p>
+                <button
+                  className="say-edit-btn"
+                  aria-label="Text bearbeiten"
+                  onClick={startEdit}
+                >
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none">
+                    <path
+                      d="M4 20h4L18.5 9.5a2 2 0 0 0-2.83-2.83L5 17v3Z"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinejoin="round"
+                    />
+                    <path d="M13.5 7.5 16.5 10.5" stroke="currentColor" strokeWidth="1.6" />
+                  </svg>
+                </button>
               </div>
             )}
           </div>
@@ -164,29 +180,6 @@ export function Companion({ onQuit }: { onQuit: () => void }) {
             />
           </svg>
         </button>
-        <button className="dock-icon" aria-label="Abbrechen" onClick={onQuit}>
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
-            <path
-              d="M6 6l12 12M18 6 6 18"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-          </svg>
-        </button>
-        {node.kind === 'say' && !editing && (
-          <button className="dock-icon" aria-label="Text bearbeiten" onClick={startEdit}>
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
-              <path
-                d="M4 20h4L18.5 9.5a2 2 0 0 0-2.83-2.83L5 17v3Z"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinejoin="round"
-              />
-              <path d="M13.5 7.5 16.5 10.5" stroke="currentColor" strokeWidth="1.6" />
-            </svg>
-          </button>
-        )}
 
         {editing ? (
           <button className="btn btn-primary" onClick={saveEdit}>
@@ -210,7 +203,41 @@ export function Companion({ onQuit }: { onQuit: () => void }) {
             Wahrscheinlichste
           </button>
         )}
+
+        <button
+          className="dock-icon"
+          aria-label="Gespräch beenden"
+          onClick={() => setConfirmQuit(true)}
+        >
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
+            <path
+              d="M6 6l12 12M18 6 6 18"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+          </svg>
+        </button>
       </div>
+
+      {confirmQuit && (
+        <div className="dialog-overlay" onClick={() => setConfirmQuit(false)}>
+          <div className="dialog" onClick={(e) => e.stopPropagation()}>
+            <p className="dialog-title">Gespräch wirklich beenden?</p>
+            <p className="dialog-text">
+              Du kehrst zur Modus-Auswahl zurück.
+            </p>
+            <div className="dialog-actions">
+              <button className="btn btn-ghost" onClick={() => setConfirmQuit(false)}>
+                Abbrechen
+              </button>
+              <button className="btn btn-primary" onClick={onQuit}>
+                Beenden
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   )
 }
