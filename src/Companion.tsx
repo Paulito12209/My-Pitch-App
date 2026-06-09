@@ -113,7 +113,9 @@ export function Companion({ onQuit }: { onQuit: () => void }) {
 
       <div className="phase-label">
         <span className="phase-name">{PHASES[phase - 1]}</span>
-        <span className="phase-sub">{node.title}</span>
+        {node.title !== PHASES[phase - 1] && (
+          <span className="phase-sub">{node.title}</span>
+        )}
       </div>
 
       <div className="companion-body" ref={scrollRef} onScroll={onScroll}>
